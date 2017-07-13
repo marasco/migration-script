@@ -1,6 +1,7 @@
 <?php 
 
 $truncateUsers = false;
+$limit = 1000; // or false
 
 //Open a new connection to the MySQL server
 $mysqli = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_users');
@@ -76,6 +77,9 @@ if ($truncateUsers) {
 }
 $errors = [];
 while($row = $results->fetch_object()) {
+	
+	if ($limit && $inserted > $limit) break;
+
 	$data = (object) unserialize($row->data);
 
 	$title = "";
@@ -92,7 +96,7 @@ while($row = $results->fetch_object()) {
 	if ($row->role == 'master_employer'){
 		$role = 'client';
 	}
-	
+
 	if($data->first_name){
 		$title.= $data->uf_first_name;
 	} else if($data->uf_first_name) {
