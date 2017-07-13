@@ -15,10 +15,11 @@ if ($mysqli2->connect_error) {
 
 
 // Users and roles
-$results = $mysqli->query("SELECT users.*, users_roles.rid, role.name AS role 
+$users = $mysqli->query("SELECT users.*, users_roles.rid, role.name AS role 
 	FROM users 
 	LEFT JOIN users_roles ON users_roles.uid = users.uid 
 	LEFT JOIN role ON role.rid = users_roles.rid 
+	GROUP BY users.uid 
 	") or die($mysqli->error);
 
 // WHERE users.uid = 110718
@@ -31,9 +32,10 @@ $mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
 $mysqli2->query("TRUNCATE users;");
 $mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
 
-while($row = $results->fetch_object()) {
-	$data = (object) unserialize($row->data);
+while($row = $users->fetch_object()) {
 
+	// embeded users object
+	$data = (object) unserialize($row->data);
 	$title = "";
 	$zip = "";
 	$work = "";
@@ -65,21 +67,17 @@ while($row = $results->fetch_object()) {
 		$address.= ", " . $data->uf_state;
 	}
 
-	//$title = addslashes($title);
-	//$title = trim(str_replace("'","\'",$title));
-	$title = str_replace("'", "\'", htmlspecialchars_decode($title, ENT_QUOTES));
-	$title = str_replace('"', "'+String.fromCharCode(34)+'", $title);
-	$title = trim($title);
-
+	$name = trim(addslashes($row->name));
+	$title = trim(addslashes($title));
 	$zip = trim(addslashes($zip));
 	$work = trim(addslashes($work));
 	$address = trim(addslashes($address));
 
 	$sql = "INSERT INTO users 
-		(role, name, address, zip_code, work, title, email, profile_picture, password, status, created_at, updated_at) VALUES
-		('{$row->role}', '{$row->name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$row->mail}','{$row->picture}', '{$row->pass}', 'active', NOW(), NOW())
+		(id,role, name, address, zip_code, work, title, email, profile_picture, password, status, created_at, updated_at) VALUES
+		($row->uid, '{$row->role}', '{$name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$row->mail}','{$row->picture}', '{$row->pass}', 'active', NOW(), NOW())
 	";
-	$insert_row = $mysqli2->query($sql) OR $errors[] = $sql;
+	$insert_row = $mysqli2->query($sql) OR $errors[] = $sql . ' => ' . $mysqli2->error;
 
 	if($insert_row){
 		$inserted++;
@@ -89,7 +87,7 @@ while($row = $results->fetch_object()) {
 var_dump($inserted);
 var_dump($errors);
 
-$results->free();
+$users->free();
 
 // close connection 
 $mysqli->close();
