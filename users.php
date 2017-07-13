@@ -14,48 +14,7 @@ if ($mysqli2->connect_error) {
 }
 
 
-/*
-select field 
-/chained PHP functions
-$product_name = $mysqli->query("SELECT product_name FROM products WHERE id = 1")->fetch_object()->product_name; 
-print $product_name; //output value
-
-
-//MySqli Insert Query
-$insert_row = $mysqli->query("INSERT INTO products (product_code, product_name, price) VALUES($product_code, $product_name, $product_price)");
-
-if($insert_row){
-    print 'Success! ID of last inserted record is : ' .$mysqli->insert_id .'<br />'; 
-}else{
-    die('Error : ('. $mysqli->errno .') '. $mysqli->error);
-}
-
-//MySqli Update Query
-$results = $mysqli->query("UPDATE products SET product_name='52 inch TV', product_code='323343' WHERE ID=24");
-
-//MySqli Delete Query
-//$results = $mysqli->query("DELETE FROM products WHERE ID=24");
-
-if($results){
-    print 'Success! record updated / deleted'; 
-}else{
-    print 'Error : ('. $mysqli->errno .') '. $mysqli->error;
-}
-
-//MySqli Delete Query
-$results = $mysqli->query("DELETE FROM products WHERE added_timestamp < (NOW() - INTERVAL 1 DAY)");
-
-if($results){
-    print 'Success! deleted one day old records'; 
-}else{
-    print 'Error : ('. $mysqli->errno .') '. $mysqli->error;
-}
-
-
-
-*/
-
-//MySqli Select Query
+// Users and roles
 $results = $mysqli->query("SELECT users.*, users_roles.rid, role.name AS role 
 	FROM users 
 	LEFT JOIN users_roles ON users_roles.uid = users.uid 
@@ -67,9 +26,11 @@ echo "<pre>";
 
 $inserted = 0;
 $schema = [];
-
-$mysqli2->query("TRUNCATE users;");
 $errors = [];
+$mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
+$mysqli2->query("TRUNCATE users;");
+$mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
+
 while($row = $results->fetch_object()) {
 	$data = (object) unserialize($row->data);
 
@@ -95,7 +56,6 @@ while($row = $results->fetch_object()) {
 	if($data->uf_zip){
 		$zip.= " " . $data->uf_zip;
 	}
-
 
 	if($data->uf_city){
 		$address.= " " . $data->uf_city;
