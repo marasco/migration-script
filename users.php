@@ -1,4 +1,7 @@
 <?php 
+
+$truncateUsers = false;
+
 //Open a new connection to the MySQL server
 $mysqli = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_users');
 $mysqli2 = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_dest');
@@ -68,7 +71,9 @@ echo "<pre>";
 $inserted = 0;
 $schema = [];
 
-$mysqli2->query("TRUNCATE users;");
+if ($truncateUsers) {
+	$mysqli2->query("TRUNCATE users;");
+}
 $errors = [];
 while($row = $results->fetch_object()) {
 	$data = (object) unserialize($row->data);
@@ -77,7 +82,17 @@ while($row = $results->fetch_object()) {
 	$zip = "";
 	$work = "";
 	$address = "";
+	$role = 'candidate';
 
+	if ($row->role != 'master_employer' && $row->role != 'job_seeker'){
+		// get off
+		continue;
+	}
+
+	if ($row->role == 'master_employer'){
+		$role = 'client';
+	}
+	
 	if($data->first_name){
 		$title.= $data->uf_first_name;
 	} else if($data->uf_first_name) {
@@ -117,7 +132,7 @@ while($row = $results->fetch_object()) {
 
 	$sql = "INSERT INTO users 
 		(role, name, address, zip_code, work, title, email, profile_picture, password, status, created_at, updated_at) VALUES
-		('{$row->role}', '{$row->name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$row->mail}','{$row->picture}', '{$row->pass}', 'active', NOW(), NOW())
+		('{$role}', '{$row->name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$row->mail}','{$row->picture}', '{$row->pass}', 'active', NOW(), NOW())
 	";
 	$insert_row = $mysqli2->query($sql) OR $errors[] = $sql;
 
