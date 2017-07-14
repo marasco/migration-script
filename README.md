@@ -14,7 +14,7 @@ php users.php -t true
 ### By ID
 
 ```
-php users.php -i 11765
+php job.php -i 11765
 ```
 
 ### By Name
