@@ -1,4 +1,7 @@
 <?php 
+
+include "functions.php";
+
 //Open a new connection to the MySQL server
 $mysqli = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_users');
 $mysqli2 = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_dest');
@@ -25,15 +28,17 @@ $users = $mysqli->query("SELECT users.*, users_roles.rid, role.name AS role
 
 // WHERE users.uid = 110718
 echo "<pre>";
-
+print "Begin dump\n";
 $inserted = 0;
 $schema = [];
 $errors = [];
 $mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
 $mysqli2->query("TRUNCATE users;");
 $mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
-
 while($row = $users->fetch_object()) {
+
+	//echo $row->uid . ",";
+	show_status($inserted, $users->num_rows);
 
 	$title = "";
 	$bio = "";
@@ -57,67 +62,67 @@ while($row = $users->fetch_object()) {
 	}
 
 	// embeded users object
-	$data = (object) unserialize($row->data);
+	$data = (object) @unserialize($row->data);
 
-	if($options->first_name){
+	if(!empty($options->first_name)){
 		$name.= $options->first_name;
 	}
 
-	if($options->last_name){
+	if(!empty($options->last_name)){
 		$name.= $options->last_name;
 	}
 
-	if($options->company_name){
+	if(!empty($options->company_name)){
 		$work.= $options->company_name;
 	}
 
-	if($options->zip){
+	if(!empty($options->zip)){
 		$zip.= $options->zip;
 	}
 
-	if($options->about){
+	if(!empty($options->about)){
 		$bio.= $options->about;
 	}
 
-	if($options->last_job_title){
+	if(!empty($options->last_job_title)){
 		$title.= $options->last_job_title;
 	}	
 
-	if($options->linkedin){
+	if(!empty($options->linkedin)){
 		$linkedin.= $options->linkedin;
 	}	
 
-	if($options->salesForceId){
+	if(!empty($options->salesForceId)){
 		$salesforce.= $options->salesForceId;
 	}	
 
 	if(trim($name)==""){
-		if($data->first_name){
-			$name.= $data->uf_first_name;
+		if(!empty($data->first_name)){
+			$name.= $data->first_name;
 		} 
 
-		if($data->uf_first_name) {
+		if(!empty($data->uf_first_name)) {
 			$name.= $data->uf_first_name;
 		}
 
-		if($data->uf_last_name) {
+		if(!empty($data->uf_last_name)) {
 			$name.= " " . $data->uf_last_name;
 		}		
 	}
 
-	if(trim($work) == "" AND $data->uf_company_name){
+	if(trim($work) == "" AND !empty($data->uf_company_name)){
 		$work.= $data->uf_company_name;
 	}
 
-	if(trim($zip) == "" AND $data->uf_zip){
+	if(trim($zip) == "" AND !empty($data->uf_zip)){
 		$zip.= $data->uf_zip;
 	}
 
-	if($data->uf_city){
+	if(!empty($data->uf_city)){
 		$address.= " " . $data->uf_city;
 	}
 
-	if($data->uf_state){
+	if(!empty($data->uf_state)){
 		$address.= ", " . $data->uf_state;
 	}
 
