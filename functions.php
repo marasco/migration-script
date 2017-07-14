@@ -1,6 +1,6 @@
 <?php 
 
-$options = getopt("t:r:");
+$options = getopt("t:r:i:n:");
 
 function option_value($o){
     global $options;

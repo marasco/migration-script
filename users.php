@@ -26,9 +26,11 @@ if(option_value('r')){ // resume
 	$inserted = $mysqli2->query("SELECT COUNT(*) as offset FROM users WHERE id < {$resume_id}")->fetch_object()->offset; 
 } else {
 	if(option_value('t')) { // truncate
-		print "Note: users : truncated" . "\n";
+		print "Note: users,user_cover_letter,user_resumes truncated" . "\n";
 		$mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
 		$mysqli2->query("TRUNCATE users;");
+		$mysqli2->query("TRUNCATE user_cover_letter;");
+		$mysqli2->query("TRUNCATE user_resumes;");
 		$mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
 	}	
 }

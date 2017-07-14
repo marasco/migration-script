@@ -16,7 +16,8 @@ if ($mysqli2->connect_error) {
     die('Error : ('. $mysqli2->connect_errno .') '. $mysqli2->connect_error);
 }
 
-if(option_enabled('t')) {
+if(option_value('t')) {
+	print "Note: user_resumes,user_cover_letter truncated" . "\n";
 	$mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
 	$mysqli2->query("TRUNCATE user_resumes;");
 	$mysqli2->query("TRUNCATE user_cover_letter;");
@@ -52,8 +53,8 @@ while($row = $users->fetch_object()) {
 
 	if(strlen($table)){
 		$sql = "INSERT INTO {$table} 
-			(user_id,name_file, path_file, created_at, updated_at) VALUES
-			($row->uid, '{$row->filename}', '{$row->fileurl}', NOW(), NOW())
+			(id, user_id,name_file, path_file, created_at, updated_at) VALUES
+			($row->fid, $row->uid, '{$row->filename}', '{$row->fileurl}', NOW(), NOW())
 		";
 		$insert_row = $mysqli2->query($sql) OR $errors[] = $sql . ' => ' . $mysqli2->error;
 	}

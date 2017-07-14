@@ -27,12 +27,13 @@ $jobs = $mysqli->query("SELECT content_type_job.*, node.title, node.uid
 $inserted = 0;
 $total = $jobs->num_rows;
 $errors = [];
-var_dump("1");
+
 if(option_value('t')) { // truncate
-	print "Note: companies,post_jobs : truncated" . "\n";
+	print "Note: companies,post_jobs,job_employment_types: truncated" . "\n";
 	$mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
 	$mysqli2->query("TRUNCATE companies;");
 	$mysqli2->query("TRUNCATE post_jobs;");
+	$mysqli2->query("TRUNCATE job_employment_types;");
 	$mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
 }
 
@@ -69,9 +70,11 @@ while($row = $jobs->fetch_object()) {
 	if(strlen($company)){
 		$company = trim(addslashes($company));
 		$company_result = $mysqli2->query("SELECT id FROM companies WHERE name = '{$company}' LIMIT 1") OR die($mysqli2->error);
+
 		if($company_result->num_rows){
 			$company_id = $company_result->fetch_object()->id;
 		} else {
+			
 			$logo = "";
 			$logo_result = $mysqli->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1") OR die($mysqli->error);
 
