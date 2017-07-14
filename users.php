@@ -21,7 +21,6 @@ $users = $mysqli->query("SELECT users.*, users_roles.rid, role.name AS role
 	LEFT JOIN role ON role.rid = users_roles.rid 
 	GROUP BY users.uid 
 	ORDER BY users.uid DESC 
-	LIMIT 2000
 	") or die($mysqli->error);
 
 // WHERE users.uid = 110718
