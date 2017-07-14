@@ -20,6 +20,8 @@ $users = $mysqli->query("SELECT users.*, users_roles.rid, role.name AS role
 	LEFT JOIN users_roles ON users_roles.uid = users.uid 
 	LEFT JOIN role ON role.rid = users_roles.rid 
 	GROUP BY users.uid 
+	ORDER BY users.uid DESC 
+	LIMIT 2000
 	") or die($mysqli->error);
 
 // WHERE users.uid = 110718
@@ -34,29 +36,82 @@ $mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
 
 while($row = $users->fetch_object()) {
 
-	// embeded users object
-	$data = (object) unserialize($row->data);
 	$title = "";
+	$bio = "";
+	$name = "";
 	$zip = "";
 	$work = "";
 	$address = "";
+	$linkedin = "";
+	$salesforce = "";
 
-	if($data->first_name){
-		$title.= $data->uf_first_name;
-	} else if($data->uf_first_name) {
-		$title.= $data->uf_first_name;
+	// Users and roles
+	$option = $mysqli->query("SELECT `key`, `value`  
+		FROM bf_users_options 
+		WHERE `key` IN('about','address','company_name','first_name','last_name','linkedin','salesForceId','zip') 
+		AND uid = {$row->uid}
+		") or die($mysqli->error);
+
+	$options = [];
+	while($row2 = $option->fetch_object()) {
+		$options[$row2->key] = $row2->value;
 	}
 
-	if($data->uf_last_name){
-		$title.= " " . $data->uf_last_name;
+	// embeded users object
+	$data = (object) unserialize($row->data);
+
+	if($options->first_name){
+		$name.= $options->first_name;
 	}
 
-	if($data->uf_company_name){
-		$work.= " " . $data->uf_company_name;
+	if($options->last_name){
+		$name.= $options->last_name;
 	}
 
-	if($data->uf_zip){
-		$zip.= " " . $data->uf_zip;
+	if($options->company_name){
+		$work.= $options->company_name;
+	}
+
+	if($options->zip){
+		$zip.= $options->zip;
+	}
+
+	if($options->about){
+		$bio.= $options->about;
+	}
+
+	if($options->last_job_title){
+		$title.= $options->last_job_title;
+	}	
+
+	if($options->linkedin){
+		$linkedin.= $options->linkedin;
+	}	
+
+	if($options->salesForceId){
+		$salesforce.= $options->salesForceId;
+	}	
+
+	if(trim($name)==""){
+		if($data->first_name){
+			$name.= $data->uf_first_name;
+		} 
+
+		if($data->uf_first_name) {
+			$name.= $data->uf_first_name;
+		}
+	}
+
+	if(trim($work) == ""){
+		if($data->uf_company_name){
+			$work.= " " . $data->uf_company_name;
+		}
+	}
+
+	if(trim($zip) == ""){
+		if($data->uf_zip){
+			$zip.= " " . $data->uf_zip;
+		}
 	}
 
 	if($data->uf_city){
@@ -67,16 +122,23 @@ while($row = $users->fetch_object()) {
 		$address.= ", " . $data->uf_state;
 	}
 
-	$name = trim(addslashes($row->name));
+	if(trim($name)==""){
+		$name = trim(addslashes($row->name));
+	}
+
 	$title = trim(addslashes($title));
 	$zip = trim(addslashes($zip));
 	$work = trim(addslashes($work));
 	$address = trim(addslashes($address));
+	$bio = trim(addslashes($bio));
+	$linkedin = trim(addslashes($linkedin));
+	$salesforce = trim(addslashes($salesforce));
 
 	$sql = "INSERT INTO users 
-		(id,role, name, address, zip_code, work, title, email, profile_picture, password, status, created_at, updated_at) VALUES
-		($row->uid, '{$row->role}', '{$name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$row->mail}','{$row->picture}', '{$row->pass}', 'active', NOW(), NOW())
+		(id,role, name, address, zip_code, work, title, email, biography, linkedin_id, salesforce_id, profile_picture, password, status, created_at, updated_at) VALUES
+		($row->uid, '{$row->role}', '{$name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$row->mail}','{$bio}','{$linkedin}','{$salesforce}','{$row->picture}', '{$row->pass}', 'active', NOW(), NOW())
 	";
+
 	$insert_row = $mysqli2->query($sql) OR $errors[] = $sql . ' => ' . $mysqli2->error;
 
 	if($insert_row){
