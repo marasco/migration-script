@@ -24,22 +24,21 @@ $users = $mysqli->query("SELECT users.*, users_roles.rid, role.name AS role
 	LEFT JOIN role ON role.rid = users_roles.rid 
 	GROUP BY users.uid 
 	ORDER BY users.uid DESC 
+	LIMIT 100
 	") or die($mysqli->error);
 
 // WHERE users.uid = 110718
-echo "<pre>";
-print "Begin dump\n";
 $inserted = 0;
 $schema = [];
 $errors = [];
+$total = $users->num_rows;
 $mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
 $mysqli2->query("TRUNCATE users;");
 $mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
+
 while($row = $users->fetch_object()) {
 
 	//echo $row->uid . ",";
-	show_status($inserted, $users->num_rows);
-
 	$title = "";
 	$bio = "";
 	$name = "";
@@ -149,10 +148,19 @@ while($row = $users->fetch_object()) {
 	if($insert_row){
 		$inserted++;
 	}
+	
+	show_status($inserted, $total);	
+}
+print "" . "\n";
+
+if(count($errors)){
+	foreach($errors as $e){
+		print "Error: " . $e . "\n";
+	}
 }
 
-var_dump($inserted);
-var_dump($errors);
+print "inserted: " . $inserted . " of " . $total . "\n";
+print "success: " . round($inserted/$total*100) . "%" . "\n";
 
 $users->free();
 

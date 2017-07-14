@@ -28,7 +28,7 @@ function show_status($done, $total, $size=30) {
 
     $status_bar.="] $disp%  $done/$total";
 
-    $rate = ($now-$start_time)/$done;
+    $rate = ($now-$start_time)/($done?:1);
     $left = $total - $done;
     $eta = round($rate * $left, 2);
 

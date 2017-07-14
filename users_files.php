@@ -1,4 +1,7 @@
 <?php 
+
+include "functions.php";
+
 //Open a new connection to the MySQL server
 $mysqli = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_users');
 $mysqli2 = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_dest');
@@ -27,6 +30,7 @@ echo "<pre>";
 $inserted = 0;
 $schema = [];
 $errors = [];
+$total = $users->num_rows;
 $mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
 $mysqli2->query("TRUNCATE user_resumes;");
 $mysqli2->query("TRUNCATE user_cover_letter;");
@@ -54,10 +58,20 @@ while($row = $users->fetch_object()) {
 	if($insert_row){
 		$inserted++;
 	}
+
+	show_status($inserted, $total);	
 }
 
-var_dump($inserted);
-var_dump($errors);
+print "" . "\n";
+
+if(count($errors)){
+	foreach($errors as $e){
+		print "Error: " . $e . "\n";
+	}
+}
+
+print "inserted: " . $inserted . " of " . $total . "\n";
+print "success: " . round($inserted/$total*100) . "%" . "\n";
 
 $users->free();
 

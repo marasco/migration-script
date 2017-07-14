@@ -1,4 +1,7 @@
 <?php 
+
+include "functions.php";
+
 //Open a new connection to the MySQL server
 $mysqli = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_jobs');
 $mysqli2 = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_dest');
@@ -66,8 +69,16 @@ while($row = $jobs->fetch_object()) {
 	}
 }
 
-var_dump($inserted);
-var_dump($errors);
+print "" . "\n";
+
+if(count($errors)){
+	foreach($errors as $e){
+		print "Error: " . $e . "\n";
+	}
+}
+
+print "inserted: " . $inserted . " of " . $total . "\n";
+print "success: " . round($inserted/$total*100) . "%" . "\n";
 
 $jobs->free();
 
