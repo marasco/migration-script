@@ -71,8 +71,19 @@ while($row = $jobs->fetch_object()) {
 		$company_result = $mysqli2->query("SELECT id FROM companies WHERE name = '{$company}' LIMIT 1") OR die($mysqli2->error);
 		if($company_result->num_rows){
 			$company_id = $company_result->fetch_object()->id;
+		} else {
+			$logo = "";
+			$logo_result = $mysqli->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1") OR die($mysqli->error);
+
+			if($logo_result->num_rows){
+				$logo = $logo_result->fetch_object()->filepath;
+			}
+
+			$sql = "INSERT INTO companies SET name = '{$company}', logo = '{$logo}'";
+			$company_id = $mysqli2->query($sql) OR die($mysqli2->error);
 		}
 	}
+
 	// jobs
 	$sql = "INSERT INTO post_jobs SET 
 		user_id = '{$row->uid}',
@@ -96,9 +107,8 @@ while($row = $jobs->fetch_object()) {
 		$employment_type = $types[$row->field_type_value];
 
 		if($employment_type){
-			$sql = "INSERT INTO job_employment_types SET 
-				job_id = '{$insert_row_id}',
-				employment_type_id = '{$employment_type}'";
+			$sql = "INSERT INTO job_employment_types SET job_id = '{$insert_row_id}',employment_type_id = '{$employment_type}'";
+			$mysqli2->query($sql) OR die($mysqli2->error);
 		} else {
 			print "Note: Employment type not found: " . $row->field_type_value . "\n";
 		}
