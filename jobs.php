@@ -15,7 +15,7 @@ if ($mysqli2->connect_error) {
 
 
 // Users and roles
-$users = $mysqli->query("SELECT content_type_job.*, node.title, node.uid 
+$jobs = $mysqli->query("SELECT content_type_job.*, node.title, node.uid 
 	FROM content_type_job
 	LEFT JOIN node ON node.nid = content_type_job.nid 
 	GROUP BY content_type_job.nid 
@@ -31,13 +31,34 @@ $mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
 $mysqli2->query("TRUNCATE post_jobs;");
 $mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
 
-while($row = $users->fetch_object()) {
+$states = [];
+// Users and roles
+$job_states = $mysqli2->query("SELECT *
+	FROM jobs_states
+	") or die($mysqli->error);
 
+while($row = $job_states->fetch_object()) {
+	$states[$row->name] = $row->id;
+}
 
-	$sql = "INSERT INTO post_jobs
-		(user_id,name_file, path_file, created_at, updated_at) VALUES
+while($row = $jobs->fetch_object()) {
+
+	$sql = "INSERT INTO post_jobs SET 
+		user_id = ,
+		company_id = ,
+		user_id = ,
+		user_id = ,
+		user_id = ,
+		user_id = ,
+		user_id = ,
+		user_id = ,
+		user_id = ,
+		user_id = ,
+		
+		(user_id,company_id, path_file, created_at, updated_at) VALUES
 		($row->uid, '{$row->filename}', '{$row->fileurl}', NOW(), NOW())
 	";
+
 	$insert_row = $mysqli2->query($sql) OR $errors[] = $sql . ' => ' . $mysqli2->error;
 
 	if($insert_row){
@@ -48,7 +69,7 @@ while($row = $users->fetch_object()) {
 var_dump($inserted);
 var_dump($errors);
 
-$users->free();
+$jobs->free();
 
 // close connection 
 $mysqli->close();

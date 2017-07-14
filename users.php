@@ -99,18 +99,18 @@ while($row = $users->fetch_object()) {
 		if($data->uf_first_name) {
 			$name.= $data->uf_first_name;
 		}
+
+		if($data->uf_last_name) {
+			$name.= " " . $data->uf_last_name;
+		}		
 	}
 
-	if(trim($work) == ""){
-		if($data->uf_company_name){
-			$work.= " " . $data->uf_company_name;
-		}
+	if(trim($work) == "" AND $data->uf_company_name){
+		$work.= $data->uf_company_name;
 	}
 
-	if(trim($zip) == ""){
-		if($data->uf_zip){
-			$zip.= " " . $data->uf_zip;
-		}
+	if(trim($zip) == "" AND $data->uf_zip){
+		$zip.= $data->uf_zip;
 	}
 
 	if($data->uf_city){
@@ -132,10 +132,11 @@ while($row = $users->fetch_object()) {
 	$bio = trim(addslashes($bio));
 	$linkedin = trim(addslashes($linkedin));
 	$salesforce = trim(addslashes($salesforce));
-
+	$email = strtolower($row->mail);
+	
 	$sql = "INSERT INTO users 
 		(id,role, name, address, zip_code, work, title, email, biography, linkedin_id, salesforce_id, profile_picture, password, status, created_at, updated_at) VALUES
-		($row->uid, '{$row->role}', '{$name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$row->mail}','{$bio}','{$linkedin}','{$salesforce}','{$row->picture}', '{$row->pass}', 'active', NOW(), NOW())
+		($row->uid, '{$row->role}', '{$name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$linkedin}','{$salesforce}','{$row->picture}', '{$row->pass}', 'active', NOW(), NOW())
 	";
 
 	$insert_row = $mysqli2->query($sql) OR $errors[] = $sql . ' => ' . $mysqli2->error;
