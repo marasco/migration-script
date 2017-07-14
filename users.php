@@ -16,25 +16,33 @@ if ($mysqli2->connect_error) {
     die('Error : ('. $mysqli2->connect_errno .') '. $mysqli2->connect_error);
 }
 
+$inserted = 0;
+$errors = [];
+$resume_id = 0;
+
+if(option_value('r')){ // resume
+	$resume_id = $mysqli2->query("SELECT MAX(id) AS id FROM users")->fetch_object()->id; 
+	print "Note: resuming from " . $resume_id .  "\n";
+	$inserted = $mysqli2->query("SELECT COUNT(*) as offset FROM users WHERE id < {$resume_id}")->fetch_object()->offset; 
+} else {
+	if(option_value('t')) { // truncate
+		print "Note: users : truncated" . "\n";
+		$mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
+		$mysqli2->query("TRUNCATE users;");
+		$mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
+	}	
+}
 
 // Users and roles
 $users = $mysqli->query("SELECT users.*, users_roles.rid, role.name AS role 
 	FROM users 
 	LEFT JOIN users_roles ON users_roles.uid = users.uid 
 	LEFT JOIN role ON role.rid = users_roles.rid 
+	WHERE users.uid > {$resume_id} 
 	GROUP BY users.uid 
-	ORDER BY users.uid DESC 
-	LIMIT 100
-	") or die($mysqli->error);
+	ORDER BY users.uid ASC") or die($mysqli->error);
 
-// WHERE users.uid = 110718
-$inserted = 0;
-$schema = [];
-$errors = [];
-$total = $users->num_rows;
-$mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
-$mysqli2->query("TRUNCATE users;");
-$mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
+$total = $mysqli->query("SELECT COUNT(*) AS total FROM users")->fetch_object()->total or die($mysqli->error);
 
 while($row = $users->fetch_object()) {
 
@@ -140,7 +148,7 @@ while($row = $users->fetch_object()) {
 	
 	$sql = "INSERT INTO users 
 		(id,role, name, address, zip_code, work, title, email, biography, linkedin_id, salesforce_id, profile_picture, password, status, created_at, updated_at) VALUES
-		($row->uid, '{$row->role}', '{$name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$linkedin}','{$salesforce}','{$row->picture}', '{$row->pass}', 'active', NOW(), NOW())
+		($row->uid, '{$row->role}', '{$name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$linkedin}','{$salesforce}','{$row->picture}', '{$row->pass}', 'migration', NOW(), NOW())
 	";
 
 	$insert_row = $mysqli2->query($sql) OR $errors[] = $sql . ' => ' . $mysqli2->error;
@@ -148,9 +156,10 @@ while($row = $users->fetch_object()) {
 	if($insert_row){
 		$inserted++;
 	}
-	
+
 	show_status($inserted, $total);	
 }
+
 print "" . "\n";
 
 if(count($errors)){

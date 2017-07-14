@@ -1,7 +1,23 @@
 <?php 
 
+$options = getopt("t:r:");
 
-function show_status($done, $total, $size=30) {
+function option_value($o){
+    global $options;
+    $value = 0;
+    if((!empty($options[$o]) AND $options[$o]) OR (!empty($_REQUEST[$o]) AND $_REQUEST[$o])){
+        $value = $options[$o]||$_REQUEST[$o];
+    }
+    return $value;
+}
+
+function show_status($done, $total, $size=30){
+    if ( php_sapi_name() == "cli") {
+        show_cli_status($done, $total, $size);
+    }
+}
+
+function show_cli_status($done, $total, $size=30) {
 
     static $start_time;
 

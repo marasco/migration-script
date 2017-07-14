@@ -16,57 +16,97 @@ if ($mysqli2->connect_error) {
     die('Error : ('. $mysqli2->connect_errno .') '. $mysqli2->connect_error);
 }
 
-
 // Users and roles
 $jobs = $mysqli->query("SELECT content_type_job.*, node.title, node.uid 
 	FROM content_type_job
 	LEFT JOIN node ON node.nid = content_type_job.nid 
 	GROUP BY content_type_job.nid 
-	") or die($mysqli->error);
+	") OR die($mysqli->error);
 
 // WHERE users.uid = 110718
-echo "<pre>";
-
 $inserted = 0;
-$schema = [];
+$total = $jobs->num_rows;
 $errors = [];
-$mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
-$mysqli2->query("TRUNCATE post_jobs;");
-$mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
+var_dump("1");
+if(option_value('t')) { // truncate
+	print "Note: companies,post_jobs : truncated" . "\n";
+	$mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
+	$mysqli2->query("TRUNCATE companies;");
+	$mysqli2->query("TRUNCATE post_jobs;");
+	$mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
+}
 
 $states = [];
 // Users and roles
-$job_states = $mysqli2->query("SELECT *
-	FROM jobs_states
-	") or die($mysqli->error);
+$job_states = $mysqli2->query("SELECT * FROM job_states") OR die($mysqli2->error);
 
 while($row = $job_states->fetch_object()) {
 	$states[$row->name] = $row->id;
 }
 
+$types = [];
+$job_types = $mysqli2->query("SELECT * FROM employment_types") OR die($mysqli2->error);
+
+while($row = $job_types->fetch_object()) {
+	$types[trim(str_replace(' ','-',$row->name))] = $row->id;
+}
+
 while($row = $jobs->fetch_object()) {
 
+	$company_id = 0;
+	$company = "";
+	$title = addslashes($row->title);
+	$city = addslashes($row->field_city_value);
+	$brand = addslashes($row->field_brand_name_value);
+	$description = addslashes($row->field_job_requirements_value);
+
+	if(strlen($row->field_brand_name_value)){
+		$company = $row->field_brand_name_value;
+	} else if(strlen($row->field_name_value)){
+		$company = $row->field_name_value;
+	}
+
+	if(strlen($company)){
+		$company = trim(addslashes($company));
+		$company_result = $mysqli2->query("SELECT id FROM companies WHERE name = '{$company}' LIMIT 1") OR die($mysqli2->error);
+		if($company_result->num_rows){
+			$company_id = $company_result->fetch_object()->id;
+		}
+	}
+	// jobs
 	$sql = "INSERT INTO post_jobs SET 
-		user_id = ,
-		company_id = ,
-		user_id = ,
-		user_id = ,
-		user_id = ,
-		user_id = ,
-		user_id = ,
-		user_id = ,
-		user_id = ,
-		user_id = ,
-		
-		(user_id,company_id, path_file, created_at, updated_at) VALUES
-		($row->uid, '{$row->filename}', '{$row->fileurl}', NOW(), NOW())
-	";
+		user_id = '{$row->uid}',
+		company_id = '{$company_id}',
+		title = '{$title}',
+		city = '{$city}',
+		brand = '{$brand}',
+		state_id = '{$row->field_state_value}',
+		zip_code = '{$row->field_zip_value}',
+		description = '{$description}',
+		status = '{$row->field_job_status_value}',
+		created_at = NOW(),
+		updated_at = NOW()";
 
-	$insert_row = $mysqli2->query($sql) OR $errors[] = $sql . ' => ' . $mysqli2->error;
+	$insert_row_id = $mysqli2->query($sql) OR $errors[] = $sql . ' => ' . $mysqli2->error;
 
-	if($insert_row){
+	if($insert_row_id){
+
+		// employment type
+
+		$employment_type = $types[$row->field_type_value];
+
+		if($employment_type){
+			$sql = "INSERT INTO job_employment_types SET 
+				job_id = '{$insert_row_id}',
+				employment_type_id = '{$employment_type}'";
+		} else {
+			print "Note: Employment type not found: " . $row->field_type_value . "\n";
+		}
+
 		$inserted++;
 	}
+
+	show_status($inserted, $total);
 }
 
 print "" . "\n";

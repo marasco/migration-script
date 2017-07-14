@@ -16,6 +16,12 @@ if ($mysqli2->connect_error) {
     die('Error : ('. $mysqli2->connect_errno .') '. $mysqli2->connect_error);
 }
 
+if(option_enabled('t')) {
+	$mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
+	$mysqli2->query("TRUNCATE user_resumes;");
+	$mysqli2->query("TRUNCATE user_cover_letter;");
+	$mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
+}
 
 // Users and roles
 $users = $mysqli->query("SELECT *
@@ -31,10 +37,7 @@ $inserted = 0;
 $schema = [];
 $errors = [];
 $total = $users->num_rows;
-$mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
-$mysqli2->query("TRUNCATE user_resumes;");
-$mysqli2->query("TRUNCATE user_cover_letter;");
-$mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
+
 
 while($row = $users->fetch_object()) {
 
