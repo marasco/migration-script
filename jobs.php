@@ -20,12 +20,10 @@
 		") OR die($mysql["bevforce_jobs"]->error);
 
 	// WHERE users.uid = 110718
-	$inserted = 0;
 	$total = $jobs->num_rows;
-	$errors = [];
 
-	$states = [];
 	// Aux 1
+	$states = [];
 	$job_states = $mysql["bevforce_dest"]->query("SELECT * FROM job_states") OR die($mysql["bevforce_dest"]->error);
 
 	while($row = $job_states->fetch_object()) {

@@ -21,7 +21,7 @@
 		ORDER BY users.uid DESC
 		") or die($mysql["bevforce_users"]->error);
 
-	$total = $mysql["bevforce_users"]->query("SELECT COUNT(*) AS total FROM users")->fetch_object()->total or die($mysql["bevforce_users"]->error);
+	$total = $users->num_rows;
 
 	while($row = $users->fetch_object()) {
 

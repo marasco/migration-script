@@ -1,13 +1,13 @@
 <?php 
 
-    $commands = "t:r:i:n:w:s:";
+    $commands = "t:r:i:n:c:w:s:";
     $options = getopt($commands);
 
     function truncate($trunc){
         global $mysql;
         foreach($trunc as $id => $tables){
             foreach($tables as $table){
-                print colorize("Note: {$id}.{$table} will be truncated" . "\n","WARNING");
+                print colorize("Note: {$id}.{$table} will be truncated","WARNING");
                 $mysql[$id]->query("SET FOREIGN_KEY_CHECKS = 0;");
                 $mysql[$id]->query("TRUNCATE " . $table . ";");
                 $mysql[$id]->query("SET FOREIGN_KEY_CHECKS = 1;");
