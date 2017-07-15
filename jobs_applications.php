@@ -30,6 +30,7 @@
 		// jobs
 		$sql = "INSERT INTO job_applications SET 
 			user_id = '{$row->uid}',
+			job_id = '{$row->nid}',
 			resume_id = '{$row->resume_fid}',
 			cover_letter_id = '{$row->cover_letter_fid}',
 			message = '{$message}',
@@ -43,11 +44,11 @@
 			$inserted++;
 		}
 
-		print show_progress($inserted, $total);
+		show_progress($inserted, $total);
 	}
 
 	$job_applications->free();
 
-	print show_status($errors, $inserted, $total);
+	show_status($errors, $inserted, $total);
 
 	endscript();

@@ -15,13 +15,6 @@
 		exit;
 	}
 
-	//Open a new connection to the MySQL server
-	$mysql["bevforce_jobs"] = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_dest');
-
-	//Output any connection error
-	if ($mysql["bevforce_jobs"]->connect_error) {
-	    die('Error : ('. $mysql["bevforce_jobs"]->connect_errno .') '. $mysql["bevforce_jobs"]->connect_error);
-	}
 
 	$where = [];
 	if($id) $where[]= "post_jobs.id = " . $id;	
@@ -29,9 +22,9 @@
 	$wheresql = implode(" AND ", $where);
 
 	// Users and roles
-	$jobs = $mysql["bevforce_jobs"]->query("
+	$jobs = $mysql["bevforce_dest"]->query("
 
-		SELECT post_jobs.*, companies.name as company, employment_types.name as employment_type  
+		SELECT post_jobs.*, companies.name AS company_name, employment_types.name AS employment_type  
 		FROM post_jobs
 		LEFT JOIN companies ON companies.id = post_jobs.company_id 
 		LEFT JOIN job_employment_types ON job_employment_types.job_id = post_jobs.id 
@@ -39,19 +32,42 @@
 		WHERE {$wheresql}
 		GROUP BY post_jobs.id
 
-		") OR die($mysql["bevforce_jobs"]->error);
+		") OR die($mysql["bevforce_dest"]->error);
 
 	if($jobs->num_rows){
+
 		print colorize("Found " . $jobs->num_rows . " job(s)","SUCCESS");
 
 		while($row = $jobs->fetch_object()) {
-			print json_encode($row, JSON_PRETTY_PRINT);
+			$company = $mysql["bevforce_dest"]->query("
+			SELECT * FROM companies
+			WHERE id = '{$row->company_id}'") OR die($mysql["bevforce_dest"]->error);
+
+			$applications = $mysql["bevforce_dest"]->query("
+			SELECT users.*, user_cover_letter.path_file AS cover_letter, user_resumes.path_file AS resume 
+			FROM users
+			LEFT JOIN job_applications ON job_applications.user_id = users.id 
+			LEFT JOIN user_cover_letter ON user_cover_letter.id = job_applications.cover_letter_id 
+			LEFT JOIN user_resumes ON user_resumes.user_id = job_applications.resume_id  
+			WHERE job_applications.job_id = '{$row->id}'") OR die($mysql["bevforce_dest"]->error);
+
+			$applicants = [];
+			while($applicant = $applications->fetch_object()) {
+				$applicants[] = $applicant;
+			}
+
+			$row->company = $company->fetch_object();
+			$row->applicants = $applicants;
+
+			$company->free();
+			$applications->free();
+
+			echo json_encode($row, JSON_PRETTY_PRINT);
+			echo "\n";
 		}
 	} else {
-		print colorize("Nothing found","WARNING");
+		echo colorize("Nothing found","WARNING");
 	}
-
-	print "\n";
 
 	$jobs->free();
 

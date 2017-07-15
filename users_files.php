@@ -45,11 +45,11 @@
 			$inserted++;
 		}
 
-		print show_progress($inserted, $total);
+		show_progress($inserted, $total);
 	}
 
 	$users->free();
 	
-	print show_status($errors, $inserted, $total);
+	show_status($errors, $inserted, $total);
 
 	endscript();

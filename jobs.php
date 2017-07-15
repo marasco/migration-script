@@ -7,7 +7,7 @@
 
 	$truncates = (object)[
 		"bevforce_dest" => ['companies','post_jobs','job_employment_types']
-	];
+	];	
 
 	include_once "functions.php";
 	include "routine.php";
@@ -104,11 +104,11 @@
 			$inserted++;
 		}
 
-		print show_progress($inserted, $total);
+		show_progress($inserted, $total);
 	}
 
 	$jobs->free();
 
-	print show_status($errors, $inserted, $total);
+	show_status($errors, $inserted, $total);
 
 	endscript();

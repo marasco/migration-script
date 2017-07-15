@@ -84,7 +84,7 @@
         if($inserted < $total)
         $status.= colorize("success " . $perc . "%",$msgstatus);
 
-        return $status;
+        echo $status;
     }
 
     function show_progress($done, $total, $size=30){
@@ -134,7 +134,7 @@
 
         // when done, send a newline
         if($done == $total) {
-            echo "\n";
+            echo "--\n";
         }
     }
 
