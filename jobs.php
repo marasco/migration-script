@@ -1,140 +1,116 @@
 <?php 
+	
+	$connections = (object)[
+		"bevforce_jobs" => ['localhost','root','eNWM@[v5FC^y'],
+		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y']
+	];
 
-include "functions.php";
+	$truncates = (object)[
+		"bevforce_dest" => ['companies','post_jobs','job_employment_types']
+	];
 
-//Open a new connection to the MySQL server
-$mysqli = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_jobs');
-$mysqli2 = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_dest');
+	include_once "functions.php";
+	include "routine.php";
 
-//Output any connection error
-if ($mysqli->connect_error) {
-    die('Error : ('. $mysqli->connect_errno .') '. $mysqli->connect_error);
-}
+	// Users and roles
+	$jobs = $mysql["bevforce_jobs"]->query("SELECT content_type_job.*, node.title, node.uid 
+		FROM content_type_job
+		LEFT JOIN node ON node.nid = content_type_job.nid 
+		GROUP BY content_type_job.nid 
+		") OR die($mysql["bevforce_jobs"]->error);
 
-//Output any connection error
-if ($mysqli2->connect_error) {
-    die('Error : ('. $mysqli2->connect_errno .') '. $mysqli2->connect_error);
-}
+	// WHERE users.uid = 110718
+	$inserted = 0;
+	$total = $jobs->num_rows;
+	$errors = [];
 
-// Users and roles
-$jobs = $mysqli->query("SELECT content_type_job.*, node.title, node.uid 
-	FROM content_type_job
-	LEFT JOIN node ON node.nid = content_type_job.nid 
-	GROUP BY content_type_job.nid 
-	") OR die($mysqli->error);
+	$states = [];
+	// Aux 1
+	$job_states = $mysql["bevforce_dest"]->query("SELECT * FROM job_states") OR die($mysql["bevforce_dest"]->error);
 
-// WHERE users.uid = 110718
-$inserted = 0;
-$total = $jobs->num_rows;
-$errors = [];
-
-if(option_value('t')) { // truncate
-	print "Note: companies,post_jobs,job_employment_types: truncated" . "\n";
-	$mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
-	$mysqli2->query("TRUNCATE companies;");
-	$mysqli2->query("TRUNCATE post_jobs;");
-	$mysqli2->query("TRUNCATE job_employment_types;");
-	$mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
-}
-
-$states = [];
-// Users and roles
-$job_states = $mysqli2->query("SELECT * FROM job_states") OR die($mysqli2->error);
-
-while($row = $job_states->fetch_object()) {
-	$states[$row->name] = $row->id;
-}
-
-$types = [];
-$job_types = $mysqli2->query("SELECT * FROM employment_types") OR die($mysqli2->error);
-
-while($row = $job_types->fetch_object()) {
-	$types[trim(str_replace(' ','-',$row->name))] = $row->id;
-}
-
-while($row = $jobs->fetch_object()) {
-
-	$company_id = 0;
-	$company = "";
-	$title = addslashes($row->title);
-	$city = addslashes($row->field_city_value);
-	$brand = addslashes($row->field_brand_name_value);
-	$description = addslashes($row->field_job_requirements_value);
-
-	if(strlen($row->field_brand_name_value)){
-		$company = $row->field_brand_name_value;
-	} else if(strlen($row->field_name_value)){
-		$company = $row->field_name_value;
+	while($row = $job_states->fetch_object()) {
+		$states[$row->name] = $row->id;
 	}
 
-	if(strlen($company)){
-		$company = trim(addslashes($company));
-		$company_result = $mysqli2->query("SELECT id FROM companies WHERE name = '{$company}' LIMIT 1") OR die($mysqli2->error);
+	// Aux 2
+	$types = [];
+	$job_types = $mysql["bevforce_dest"]->query("SELECT * FROM employment_types") OR die($mysql["bevforce_dest"]->error);
 
-		if($company_result->num_rows){
-			$company_id = $company_result->fetch_object()->id;
-		} else {
-			
-			$logo = "";
-			$logo_result = $mysqli->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1") OR die($mysqli->error);
+	while($row = $job_types->fetch_object()) {
+		$types[trim(str_replace(' ','-',$row->name))] = $row->id;
+	}
 
-			if($logo_result->num_rows){
-				$logo = $logo_result->fetch_object()->filepath;
+	while($row = $jobs->fetch_object()) {
+
+		$company_id = 0;
+		$company = "";
+		$title = addslashes($row->title);
+		$city = addslashes($row->field_city_value);
+		$brand = addslashes($row->field_brand_name_value);
+		$description = addslashes($row->field_job_requirements_value);
+
+		if(strlen($row->field_brand_name_value)){
+			$company = $row->field_brand_name_value;
+		} else if(strlen($row->field_name_value)){
+			$company = $row->field_name_value;
+		}
+
+		if(strlen($company)){
+			$company = trim(addslashes($company));
+			$company_result = $mysql["bevforce_dest"]->query("SELECT id FROM companies WHERE name = '{$company}' LIMIT 1") OR die($mysql["bevforce_dest"]->error);
+
+			if($company_result->num_rows){
+				$company_id = $company_result->fetch_object()->id;
+			} else {
+				
+				$logo = "";
+				$logo_result = $mysql["bevforce_jobs"]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1") OR die($mysql["bevforce_jobs"]->error);
+
+				if($logo_result->num_rows){
+					$logo = $logo_result->fetch_object()->filepath;
+				}
+
+				$sql = "INSERT INTO companies SET name = '{$company}', logo = '{$logo}'";
+				$company_id = $mysql["bevforce_dest"]->query($sql) OR die($mysql["bevforce_dest"]->error);
+			}
+		}
+
+		// jobs
+		$sql = "INSERT INTO post_jobs SET 
+			user_id = '{$row->uid}',
+			company_id = '{$company_id}',
+			title = '{$title}',
+			city = '{$city}',
+			brand = '{$brand}',
+			state_id = '{$row->field_state_value}',
+			zip_code = '{$row->field_zip_value}',
+			description = '{$description}',
+			status = '{$row->field_job_status_value}',
+			created_at = NOW(),
+			updated_at = NOW()";
+
+		$insert_row_id = $mysql["bevforce_dest"]->query($sql) OR $errors[] = $sql . ' => ' . $mysql["bevforce_dest"]->error;
+
+		if($insert_row_id){
+
+			// employment type
+			$employment_type = $types[$row->field_type_value];
+
+			if($employment_type){
+				$sql = "INSERT INTO job_employment_types SET job_id = '{$insert_row_id}',employment_type_id = '{$employment_type}'";
+				$mysql["bevforce_dest"]->query($sql) OR die($mysql["bevforce_dest"]->error);
+			} else {
+				print colorize("Note: Employment type not found: " . $row->field_type_value,"WARNING");
 			}
 
-			$sql = "INSERT INTO companies SET name = '{$company}', logo = '{$logo}'";
-			$company_id = $mysqli2->query($sql) OR die($mysqli2->error);
-		}
-	}
-
-	// jobs
-	$sql = "INSERT INTO post_jobs SET 
-		user_id = '{$row->uid}',
-		company_id = '{$company_id}',
-		title = '{$title}',
-		city = '{$city}',
-		brand = '{$brand}',
-		state_id = '{$row->field_state_value}',
-		zip_code = '{$row->field_zip_value}',
-		description = '{$description}',
-		status = '{$row->field_job_status_value}',
-		created_at = NOW(),
-		updated_at = NOW()";
-
-	$insert_row_id = $mysqli2->query($sql) OR $errors[] = $sql . ' => ' . $mysqli2->error;
-
-	if($insert_row_id){
-
-		// employment type
-
-		$employment_type = $types[$row->field_type_value];
-
-		if($employment_type){
-			$sql = "INSERT INTO job_employment_types SET job_id = '{$insert_row_id}',employment_type_id = '{$employment_type}'";
-			$mysqli2->query($sql) OR die($mysqli2->error);
-		} else {
-			print "Note: Employment type not found: " . $row->field_type_value . "\n";
+			$inserted++;
 		}
 
-		$inserted++;
+		print show_progress($inserted, $total);
 	}
 
-	show_status($inserted, $total);
-}
+	$jobs->free();
 
-print "" . "\n";
+	print show_status($errors, $inserted, $total);
 
-if(count($errors)){
-	foreach($errors as $e){
-		print "Error: " . $e . "\n";
-	}
-}
-
-print "inserted: " . $inserted . " of " . $total . "\n";
-print "success: " . round($inserted/$total*100) . "%" . "\n";
-
-$jobs->free();
-
-// close connection 
-$mysqli->close();
-$mysqli2->close();
+	endscript();

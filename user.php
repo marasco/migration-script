@@ -1,51 +1,47 @@
 <?php 
 
-include "functions.php";
+	$connections = (object)[
+		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y','bevforce_jobs']
+	];
 
-$id = option_value('i');
-$name = option_value('n');
+	include_once "functions.php";
+	include "routine.php";
 
-if(!$id AND !$name){
-	print "No id or name provided. Please use -id 123 || -name John" . "\n";
-	exit;
-}
+	$id = !empty($options['i'])?$options['i']:0;
+	$name = !empty($options['n'])?$options['n']:0;
 
-//Open a new connection to the MySQL server
-$mysqli = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_dest');
-
-//Output any connection error
-if ($mysqli->connect_error) {
-    die('Error : ('. $mysqli->connect_errno .') '. $mysqli->connect_error);
-}
-
-$where = [];
-if($id) $where[]= "users.id = " . $id;	
-if($name) $where[]= "users.name LIKE '%" . $name . "'";
-$wheresql = implode(" AND ", $where);
-
-// Users and roles
-$users = $mysqli->query("
-
-	SELECT users.*, user_cover_letter.path_file as cover_letter, user_resumes.path_file as resume 
-	FROM users
-	LEFT JOIN user_cover_letter ON user_cover_letter.user_id = users.id 
-	LEFT JOIN user_resumes ON user_resumes.user_id = users.id 
-	WHERE {$wheresql}
-	GROUP BY users.id
-
-	") OR die($mysqli->error);
-
-if($users->num_rows){
-	print "Found " . $users->num_rows . " users" . "\n";
-
-	while($row = $users->fetch_object()) {
-		print json_encode($row, JSON_PRETTY_PRINT);
+	if(!$id AND !$name){
+		print colorize("No id or name provided. Please use -id 123 || -name John","FAILURE");
+		exit;
 	}
-}
 
-print "\n";
+	$where = [];
+	if($id) $where[]= "users.id = " . $id;	
+	if($name) $where[]= "users.name LIKE '%" . $name . "'";
+	$wheresql = implode(" AND ", $where);
 
-$users->free();
+	// Users and roles
+	$users = $mysql["bevforce_dest"]->query("
 
-// close connection 
-$mysqli->close();
+		SELECT users.*, user_cover_letter.path_file as cover_letter, user_resumes.path_file as resume 
+		FROM users
+		LEFT JOIN user_cover_letter ON user_cover_letter.user_id = users.id 
+		LEFT JOIN user_resumes ON user_resumes.user_id = users.id 
+		WHERE {$wheresql}
+		GROUP BY users.id
+
+		") OR die($mysql["bevforce_dest"]->error);
+
+	if($users->num_rows){
+		print colorize("Found " . $users->num_rows . " user(s)","SUCCESS");
+
+		while($row = $users->fetch_object()) {
+			print json_encode($row, JSON_PRETTY_PRINT);
+		}
+	} else {
+		print colorize("Nothing found","WARNING");
+	}
+
+	$users->free();
+
+	endscript();

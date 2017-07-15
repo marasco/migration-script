@@ -1,84 +1,55 @@
 <?php 
 
-include "functions.php";
+	$connections = (object)[
+		"bevforce_users" => ['localhost','root','eNWM@[v5FC^y'],
+		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y']
+	];
 
-//Open a new connection to the MySQL server
-$mysqli = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_users');
-$mysqli2 = new mysqli('localhost','root','eNWM@[v5FC^y','bevforce_dest');
+	$truncates = (object)[
+		"bevforce_dest" => ['user_resumes','user_cover_letter']
+	];
 
-//Output any connection error
-if ($mysqli->connect_error) {
-    die('Error : ('. $mysqli->connect_errno .') '. $mysqli->connect_error);
-}
+	include_once "functions.php";
+	include "routine.php";
 
-//Output any connection error
-if ($mysqli2->connect_error) {
-    die('Error : ('. $mysqli2->connect_errno .') '. $mysqli2->connect_error);
-}
+	// Users and roles
+	$users = $mysql["bevforce_users"]->query("SELECT *
+		FROM bf_files
+		WHERE type IN('cover-letter','resume') 
+		GROUP BY fid 
+		") or die($mysql["bevforce_users"]->error);
 
-if(option_value('t')) {
-	print "Note: user_resumes,user_cover_letter truncated" . "\n";
-	$mysqli2->query("SET FOREIGN_KEY_CHECKS = 0;");
-	$mysqli2->query("TRUNCATE user_resumes;");
-	$mysqli2->query("TRUNCATE user_cover_letter;");
-	$mysqli2->query("SET FOREIGN_KEY_CHECKS = 1;");
-}
+	// WHERE users.uid = 110718
 
-// Users and roles
-$users = $mysqli->query("SELECT *
-	FROM bf_files
-	WHERE type IN('cover-letter','resume') 
-	GROUP BY fid 
-	") or die($mysqli->error);
+	$total = $users->num_rows;
 
-// WHERE users.uid = 110718
-echo "<pre>";
+	while($row = $users->fetch_object()) {
 
-$inserted = 0;
-$schema = [];
-$errors = [];
-$total = $users->num_rows;
+		$table = "";
 
+		if($row->type == 'resume'){
+			$table = "user_resumes";
+		} else if($row->type == 'cover-letter'){
+			$table = "user_cover_letter";
+		}
 
-while($row = $users->fetch_object()) {
+		if(strlen($table)){
+			$sql = "INSERT INTO {$table} 
+				(id, user_id,name_file, path_file, created_at, updated_at) VALUES
+				($row->fid, $row->uid, '{$row->filename}', '{$row->fileurl}', NOW(), NOW())
+			";
+			$insert_row = $mysql["bevforce_dest"]->query($sql) OR $errors[] = $sql . ' => ' . $mysql["bevforce_dest"]->error;
+		}
 
-	$table = "";
+		if($insert_row){
+			$inserted++;
+		}
 
-	if($row->type == 'resume'){
-		$table = "user_resumes";
-	}
-	else if($row->type == 'cover-letter'){
-		$table = "user_cover_letter";
+		print show_progress($inserted, $total);
 	}
 
-	if(strlen($table)){
-		$sql = "INSERT INTO {$table} 
-			(id, user_id,name_file, path_file, created_at, updated_at) VALUES
-			($row->fid, $row->uid, '{$row->filename}', '{$row->fileurl}', NOW(), NOW())
-		";
-		$insert_row = $mysqli2->query($sql) OR $errors[] = $sql . ' => ' . $mysqli2->error;
-	}
+	$users->free();
+	
+	print show_status($errors, $inserted, $total);
 
-	if($insert_row){
-		$inserted++;
-	}
-
-	show_status($inserted, $total);	
-}
-
-print "" . "\n";
-
-if(count($errors)){
-	foreach($errors as $e){
-		print "Error: " . $e . "\n";
-	}
-}
-
-print "inserted: " . $inserted . " of " . $total . "\n";
-print "success: " . round($inserted/$total*100) . "%" . "\n";
-
-$users->free();
-
-// close connection 
-$mysqli->close();
-$mysqli2->close();
+	endscript();
