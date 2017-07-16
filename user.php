@@ -40,9 +40,10 @@
 		while($row = $users->fetch_object()) {
 
 			$applications = $mysql["bevforce_dest"]->query("
-			SELECT users.*, user_cover_letter.path_file AS cover_letter, user_resumes.path_file AS resume 
-			FROM users
-			LEFT JOIN job_applications ON job_applications.user_id = users.id 
+			SELECT job_applications.*, user_cover_letter.path_file AS cover_letter, user_resumes.path_file AS resume,
+			post_jobs.title, post_jobs.brand  
+			FROM job_applications
+			LEFT JOIN post_jobs ON post_jobs.id = job_applications.job_id 
 			LEFT JOIN user_cover_letter ON user_cover_letter.id = job_applications.cover_letter_id 
 			LEFT JOIN user_resumes ON user_resumes.user_id = job_applications.resume_id  
 			WHERE job_applications.user_id = '{$row->id}'") OR die($mysql["bevforce_dest"]->error);
