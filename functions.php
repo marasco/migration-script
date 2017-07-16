@@ -1,6 +1,6 @@
 <?php 
 
-    $commands = "t:r:i:n:c:w:s:";
+    $commands = "t:r:i:n:c:w:s:e:";
     $options = getopt($commands);
 
     function truncate($trunc){

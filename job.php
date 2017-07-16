@@ -36,8 +36,6 @@
 
 	if($jobs->num_rows){
 
-		print colorize("Found " . $jobs->num_rows . " job(s)","SUCCESS");
-
 		while($row = $jobs->fetch_object()) {
 			$company = $mysql["bevforce_dest"]->query("
 			SELECT * FROM companies
@@ -63,11 +61,13 @@
 			$applications->free();
 
 			echo json_encode($row, JSON_PRETTY_PRINT);
-			echo "\n";
 		}
 	} else {
 		echo colorize("Nothing found","WARNING");
 	}
+
+	echo "\n";
+	echo colorize("Found " . $jobs->num_rows . " job(s)","SUCCESS");
 
 	$jobs->free();
 
