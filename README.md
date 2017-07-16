@@ -31,12 +31,14 @@ php job.php -i 21650
 
 ```
 php user.php -n John
+php user.php -e martinez113@aol.com
 ```
 
 ##Modifiers glossary
 ```
 -i id
 -n name
+-e email
 -t truncate
 -w with
 -r resume (not implemented yet)

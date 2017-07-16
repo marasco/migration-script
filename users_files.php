@@ -13,11 +13,12 @@
 	include "routine.php";
 
 	// Users and roles
-	$users = $mysql["bevforce_users"]->query("SELECT *
-		FROM bf_files
-		WHERE type IN('cover-letter','resume') 
-		GROUP BY fid 
-		") or die($mysql["bevforce_users"]->error);
+	$users = $mysql["bevforce_users"]->query("
+	SELECT *
+	FROM bf_files
+	WHERE type IN('cover-letter','resume') 
+	GROUP BY fid 
+	") or die($mysql["bevforce_users"]->error);
 
 	// WHERE users.uid = 110718
 
@@ -35,8 +36,8 @@
 
 		if(strlen($table)){
 			$sql = "INSERT INTO {$table} 
-				(id, user_id,name_file, path_file, created_at, updated_at) VALUES
-				($row->fid, $row->uid, '{$row->filename}', '{$row->fileurl}', NOW(), NOW())
+			(id, user_id,name_file, path_file, created_at, updated_at) VALUES
+			($row->fid, $row->uid, '{$row->filename}', '{$row->fileurl}', NOW(), NOW())
 			";
 			$insert_row = $mysql["bevforce_dest"]->query($sql) OR $errors[] = $sql . ' => ' . $mysql["bevforce_dest"]->error;
 		}

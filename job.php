@@ -34,6 +34,7 @@
 
 		") OR die($mysql["bevforce_dest"]->error);
 
+	$json = [];
 	if($jobs->num_rows){
 
 		while($row = $jobs->fetch_object()) {
@@ -60,15 +61,17 @@
 			$company->free();
 			$applications->free();
 
-			echo json_encode($row, JSON_PRETTY_PRINT);
+			$json[]= $row;
 		}
+
+		echo json_encode($json, JSON_PRETTY_PRINT);
+		echo "\n";
+		echo colorize("Found " . $jobs->num_rows . " job(s)","SUCCESS");
+
 	} else {
 		echo colorize("Nothing found","WARNING");
 	}
-
-	echo "\n";
-	echo colorize("Found " . $jobs->num_rows . " job(s)","SUCCESS");
-
+	
 	$jobs->free();
 
 	endscript();

@@ -14,12 +14,11 @@
 
 	// Users and roles
 	$job_applications = $mysql["bevforce_jobs"]->query("
-
-		SELECT bf_job_applications.*, node.title, node.uid 
-		FROM bf_job_applications
-		LEFT JOIN node ON node.nid = bf_job_applications.nid 
-		GROUP BY bf_job_applications.aid 
-		") OR die($mysql["bevforce_jobs"]->error);
+	SELECT bf_job_applications.*, node.title 
+	FROM bf_job_applications
+	LEFT JOIN node ON node.nid = bf_job_applications.nid 
+	GROUP BY bf_job_applications.aid 
+	") OR die($mysql["bevforce_jobs"]->error);
 
 	$total = $job_applications->num_rows;
 
@@ -29,14 +28,14 @@
 
 		// jobs
 		$sql = "INSERT INTO job_applications SET 
-			user_id = '{$row->uid}',
-			job_id = '{$row->nid}',
-			resume_id = '{$row->resume_fid}',
-			cover_letter_id = '{$row->cover_letter_fid}',
-			message = '{$message}',
-			status = '{$row->status}',
-			created_at = NOW(),
-			updated_at = NOW()";
+		user_id = '{$row->uid}',
+		job_id = '{$row->nid}',
+		resume_id = '{$row->resume_fid}',
+		cover_letter_id = '{$row->cover_letter_fid}',
+		message = '{$message}',
+		status = '{$row->status}',
+		created_at = NOW(),
+		updated_at = NOW()";
 
 		$insert_row_id = $mysql["bevforce_dest"]->query($sql) OR $errors[] = $sql . ' => ' . $mysql["bevforce_dest"]->error;
 

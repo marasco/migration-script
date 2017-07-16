@@ -27,24 +27,44 @@
 
 		SELECT users.*, user_cover_letter.path_file as cover_letter, user_resumes.path_file as resume 
 		FROM users
-		JOIN user_cover_letter ON user_cover_letter.user_id = users.id 
-		JOIN user_resumes ON user_resumes.user_id = users.id 
+		LEFT JOIN user_cover_letter ON user_cover_letter.user_id = users.id 
+		LEFT JOIN user_resumes ON user_resumes.user_id = users.id 
 		WHERE {$wheresql}
 		GROUP BY users.id
 
 		") OR die($mysql["bevforce_dest"]->error);
 
+	$json = [];
 	if($users->num_rows){
 
 		while($row = $users->fetch_object()) {
-			echo json_encode($row, JSON_PRETTY_PRINT);
+
+			$applications = $mysql["bevforce_dest"]->query("
+			SELECT users.*, user_cover_letter.path_file AS cover_letter, user_resumes.path_file AS resume 
+			FROM users
+			LEFT JOIN job_applications ON job_applications.user_id = users.id 
+			LEFT JOIN user_cover_letter ON user_cover_letter.id = job_applications.cover_letter_id 
+			LEFT JOIN user_resumes ON user_resumes.user_id = job_applications.resume_id  
+			WHERE job_applications.user_id = '{$row->id}'") OR die($mysql["bevforce_dest"]->error);
+
+			$apps = [];
+			while($app = $applications->fetch_object()) {
+				$apps[] = $app;
+			}
+
+			$row->applications = $apps;
+			$applications->free();
+
+			$json[]= $row;
 		}
+
+		echo json_encode($json, JSON_PRETTY_PRINT);
+		echo "\n";
+		echo colorize("Found " . $users->num_rows . " user(s)","SUCCESS");		
+
 	} else {
 		echo colorize("Nothing found","WARNING");
 	}
-
-	echo "\n";
-	echo colorize("Found " . $users->num_rows . " user(s)","SUCCESS");		
 
 	$users->free();
 
