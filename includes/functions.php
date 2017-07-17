@@ -137,14 +137,14 @@
         $left = $total - $done;
         $eta = round($rate * $left, 2);
         $elapsed = $now - $start_time;
-        $details .= " " . formatTime($eta)." ". formatTime($elapsed);
+        $details.= " " . formatTime($eta)." ". formatTime($elapsed);
         $lineWidth--;
 
         if(strlen($details) >= $lineWidth){
             $details = substr($details, 0, $lineWidth-1);
         }
 
-        echo "$details\n$status_bar";
+        echo "$details                      \n$status_bar";
 
         flush();
 

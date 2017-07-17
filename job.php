@@ -7,6 +7,8 @@
 	include_once "includes/functions.php";
 	include "includes/routine.php";
 
+	$mysql["bevforce_dest"]->set_charset("utf8");
+
 	$id = !empty($options['i'])?$options['i']:0;
 	$name = !empty($options['n'])?$options['n']:0;
 
@@ -23,11 +25,13 @@
 	// Users and roles
 	$jobs = $mysql["bevforce_dest"]->query("
 
-		SELECT post_jobs.*, companies.name AS company_name, employment_types.name AS employment_type  
+		SELECT post_jobs.*, companies.name AS company_name, 
+		manufacturing_types.name AS manufacturing_type, 
+		beverage_types.name AS beverage_type 
 		FROM post_jobs
 		LEFT JOIN companies ON companies.id = post_jobs.company_id 
-		LEFT JOIN job_employment_types ON job_employment_types.job_id = post_jobs.id 
-		LEFT JOIN employment_types ON employment_types.id = job_employment_types.employment_type_id
+		LEFT JOIN manufacturing_types ON manufacturing_types.id = post_jobs.manufacturing_type_id 
+		LEFT JOIN beverage_types ON beverage_types.id = post_jobs.beverage_type_id 
 		WHERE {$wheresql}
 		GROUP BY post_jobs.id
 
@@ -54,11 +58,37 @@
 				$applicants[] = $applicant;
 			}
 
+			$areas_result = $mysql["bevforce_dest"]->query("
+			SELECT job_areas.id, areas.name 
+			FROM job_areas
+			LEFT JOIN areas ON job_areas.area_id = areas.id 
+			WHERE job_areas.job_id = '{$row->id}'") OR die($mysql["bevforce_dest"]->error);
+
+			$areas = [];
+			while($area = $areas_result->fetch_object()) {
+				$areas[] = $area->name;
+			}
+
+			$employment_types_result = $mysql["bevforce_dest"]->query("
+			SELECT job_employment_types.id, employment_types.name 
+			FROM job_employment_types
+			LEFT JOIN employment_types ON job_employment_types.employment_type_id = employment_types.id 
+			WHERE job_employment_types.job_id = '{$row->id}'") OR die($mysql["bevforce_dest"]->error);
+
+			$employment_types = [];
+			while($employment_type = $employment_types_result->fetch_object()) {
+				$employment_types[] = $employment_type->name;
+			}
+
 			$row->company = $company->fetch_object();
 			$row->applicants = $applicants;
+			$row->areas = $areas;
+			$row->employment_types = $employment_types;
 
 			$company->free();
 			$applications->free();
+			$employment_types_result->free();
+			$areas_result->free();
 
 			$json[]= $row;
 		}

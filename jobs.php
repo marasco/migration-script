@@ -6,7 +6,7 @@
 	];
 
 	$truncates = (object)[
-		"bevforce_dest" => ['companies','post_jobs','employment_types','job_employment_types','areas','manufacturing_types','beverage_types','areas']
+		"bevforce_dest" => ['companies','post_jobs','employment_types','job_employment_types','areas','job_areas','manufacturing_types','beverage_types']
 	];	
 
 	include_once "includes/functions.php";
@@ -186,11 +186,12 @@
 		}
 
 		if(!empty($row->field_job_base_pay_value)){
-			$salary_range = "{$row->field_job_base_pay_value}";
+			$salary_range = trim(addslashes($row->field_job_base_pay_value));
 		}
 
 		// jobs
 		$sql = "INSERT INTO post_jobs SET 
+		id = '{$row->nid}',
 		user_id = '{$row->uid}',
 		company_id = '{$company_id}',
 		manufacturing_type_id = '{$manufacturing_type_id}',
@@ -202,7 +203,7 @@
 		zip_code = '{$row->field_zip_value}',
 		reports_to = '{$reports_to}',
 		of_reports = '{$of_reports}',
-		salary_range = '{$row->field_job_direct_reports_value}',
+		salary_range = '{$salary_range}',
 		description = '{$description} {$requirements}',
 		status = '{$row->field_job_status_value}',
 		redirect_to_company_job_board_post = '{$row->field_external_job_board_value}',
