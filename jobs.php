@@ -38,10 +38,13 @@
 		$beverage_type = "";
 		$beverage_type_id = 0;
 		$state_id = 0;
-		$city = addslashes($row->field_city_value);
-		$brand = addslashes($row->field_brand_name_value);
-		$description = addslashes($row->job_description);
-		$requirements = addslashes($row->field_job_requirements_value);
+		$salary_range = "";
+		$city = trim(addslashes($row->field_city_value));
+		$brand = trim(addslashes($row->field_brand_name_value));
+		$description = trim(addslashes($row->job_description));
+		$requirements = trim(addslashes($row->field_job_requirements_value));
+		$reports_to = trim(addslashes($row->field_job_reports_to_value));
+		$of_reports = trim(addslashes($row->field_job_direct_reports_value));
 		$created = date('Y-m-d H:i:s', $row->created);
 		$changed = date('Y-m-d H:i:s', $row->changed);
 		$expired = date('Y-m-d H:i:s', strtotime($row->field_job_expiration_value));
@@ -76,8 +79,10 @@
 		if(!empty($row->job_title)){
 			$title = $row->job_title;
 		} else {
-			$title = addslashes($row->title);
+			$title = $row->title;
 		}
+
+		$title = addslashes($title);
 
 		if(!empty($row->field_state_value)){
 			$ucfirst = ucfirst($row->field_state_value);
@@ -180,6 +185,9 @@
 			}
 		}
 
+		if(!empty($row->field_job_base_pay_value)){
+			$salary_range = "{$row->field_job_base_pay_value}";
+		}
 
 		// jobs
 		$sql = "INSERT INTO post_jobs SET 
@@ -192,8 +200,9 @@
 		brand = '{$brand}',
 		state_id = '{$state_id}',
 		zip_code = '{$row->field_zip_value}',
-		reports_to = '{$row->field_job_reports_to_value}',
-		of_reports = '{$row->field_job_direct_reports_value}',
+		reports_to = '{$reports_to}',
+		of_reports = '{$of_reports}',
+		salary_range = '{$row->field_job_direct_reports_value}',
 		description = '{$description} {$requirements}',
 		status = '{$row->field_job_status_value}',
 		redirect_to_company_job_board_post = '{$row->field_external_job_board_value}',
