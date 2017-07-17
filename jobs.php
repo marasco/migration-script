@@ -17,7 +17,6 @@
 		FROM content_type_job
 		LEFT JOIN node ON node.nid = content_type_job.nid 
 		GROUP BY content_type_job.nid 
-		LIMIT 1000
 		") OR die($mysql["bevforce_jobs"]->error);
 
 	// WHERE users.uid = 110718
