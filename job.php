@@ -4,8 +4,8 @@
 		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y']
 	];
 
-	include_once "functions.php";
-	include "routine.php";
+	include_once "includes/functions.php";
+	include "includes/routine.php";
 
 	$id = !empty($options['i'])?$options['i']:0;
 	$name = !empty($options['n'])?$options['n']:0;
@@ -14,7 +14,6 @@
 		print colorize("No id or name provided. Please use -id 123 || -name John","FAILURE");
 		exit;
 	}
-
 
 	$where = [];
 	if($id) $where[]= "post_jobs.id = " . $id;	

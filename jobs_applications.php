@@ -1,7 +1,7 @@
 <?php 
 	
 	$connections = (object)[
-		"bevforce_jobs" => ['localhost','root','eNWM@[v5FC^y'],
+		"bevforce" => ['localhost','root','eNWM@[v5FC^y'],
 		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y']
 	];
 
@@ -9,16 +9,16 @@
 		"bevforce_dest" => ['job_applications']
 	];
 
-	include_once "functions.php";
-	include "routine.php";
+	include_once "includes/functions.php";
+	include "includes/routine.php";
 
 	// Users and roles
-	$job_applications = $mysql["bevforce_jobs"]->query("
+	$job_applications = $mysql["bevforce"]->query("
 	SELECT bf_job_applications.*, node.title 
 	FROM bf_job_applications
 	LEFT JOIN node ON node.nid = bf_job_applications.nid 
 	GROUP BY bf_job_applications.aid 
-	") OR die($mysql["bevforce_jobs"]->error);
+	") OR die($mysql["bevforce"]->error);
 
 	$total = $job_applications->num_rows;
 

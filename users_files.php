@@ -1,7 +1,7 @@
 <?php 
 
 	$connections = (object)[
-		"bevforce_users" => ['localhost','root','eNWM@[v5FC^y'],
+		"bevforce" => ['localhost','root','eNWM@[v5FC^y'],
 		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y']
 	];
 
@@ -9,16 +9,16 @@
 		"bevforce_dest" => ['user_resumes','user_cover_letter']
 	];
 
-	include_once "functions.php";
-	include "routine.php";
+	include_once "includes/functions.php";
+	include "includes/routine.php";
 
 	// Users and roles
-	$users = $mysql["bevforce_users"]->query("
+	$users = $mysql["bevforce"]->query("
 	SELECT *
 	FROM bf_files
 	WHERE type IN('cover-letter','resume') 
 	GROUP BY fid 
-	") or die($mysql["bevforce_users"]->error);
+	") or die($mysql["bevforce"]->error);
 
 	// WHERE users.uid = 110718
 

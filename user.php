@@ -1,11 +1,11 @@
 <?php 
 
 	$connections = (object)[
-		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y','bevforce_jobs']
+		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y','bevforce']
 	];
 
-	include_once "functions.php";
-	include "routine.php";
+	include_once "includes/functions.php";
+	include "includes/routine.php";
 
 	$id = !empty($options['i'])?$options['i']:0;
 	$name = !empty($options['n'])?$options['n']:0;

@@ -1,4 +1,6 @@
 <?php 
+    
+    //include_once "includes/progress.php";
 
     $commands = "t:r:i:n:c:w:s:e:";
     $options = getopt($commands);
@@ -13,6 +15,7 @@
                 $mysql[$id]->query("SET FOREIGN_KEY_CHECKS = 1;");
             }
         }
+        echo "\n";
     }
 
     function endscript(){
@@ -93,12 +96,18 @@
         }
     }
 
-    function show_cli_progress($done, $total, $size=30) {
+    function show_cli_progress($done, $total, $size=30, $lineWidth=-1) {
+        if($lineWidth <= 0){
+            $lineWidth =  exec("tput cols");
+        }
 
         static $start_time;
 
+        // to take account for [ and ]
+        $size -= 3;
         // if we go over our bound, just ignore it
         if($done > $total) return;
+        if($done < 1) $done = 1;
 
         if(empty($start_time)) $start_time=time();
         $now = time();
@@ -107,7 +116,12 @@
 
         $bar=floor($perc*$size);
 
-        $status_bar="\r[";
+        // jump to the begining
+        echo "\r";
+        // jump a line up
+        echo "\x1b[A";
+
+        $status_bar="[";
         $status_bar.=str_repeat("=", $bar);
         if($bar<$size){
             $status_bar.=">";
@@ -117,27 +131,39 @@
         }
 
         $disp=number_format($perc*100, 0);
-
-        $status_bar.="] $disp%  $done/$total";
-
-        $rate = ($now-$start_time)/($done?:1);
+        $status_bar.="]";
+        $details = "$disp% $done/$total";
+        $rate = ($now-$start_time)/$done;
         $left = $total - $done;
         $eta = round($rate * $left, 2);
-
         $elapsed = $now - $start_time;
+        $details .= " " . formatTime($eta)." ". formatTime($elapsed);
+        $lineWidth--;
 
-        $status_bar.= " remaining: ".number_format($eta)." sec.  elapsed: ".number_format($elapsed)." sec.";
+        if(strlen($details) >= $lineWidth){
+            $details = substr($details, 0, $lineWidth-1);
+        }
 
-        ob_start();
-        echo "$status_bar  ";
+        echo "$details\n$status_bar";
 
-        ob_flush();
         flush();
 
         // when done, send a newline
         if($done == $total) {
             echo "\n";
         }
+    }    
+
+    function formatTime($sec){
+        if($sec > 100){
+            $sec /= 60;
+            if($sec > 100){
+                $sec /= 60;
+                return number_format($sec) . " hr";
+            }
+            return number_format($sec) . " min";
+        }
+        return number_format($sec) . " sec";
     }
 
     function colorize($text, $status) {
