@@ -18,6 +18,7 @@
 	FROM bf_job_applications
 	LEFT JOIN node ON node.nid = bf_job_applications.nid 
 	GROUP BY bf_job_applications.aid 
+	LIMIT 1000
 	") OR die($mysql["bevforce_jobs"]->error);
 
 	$total = $job_applications->num_rows;

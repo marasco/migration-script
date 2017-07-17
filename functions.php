@@ -128,13 +128,15 @@
 
         $status_bar.= " remaining: ".number_format($eta)." sec.  elapsed: ".number_format($elapsed)." sec.";
 
+        ob_start();
         echo "$status_bar  ";
 
+        ob_flush();
         flush();
 
         // when done, send a newline
         if($done == $total) {
-            echo "--\n";
+            echo "\n";
         }
     }
 

@@ -18,7 +18,8 @@
 		LEFT JOIN users_roles ON users_roles.uid = users.uid 
 		LEFT JOIN role ON role.rid = users_roles.rid 
 		GROUP BY users.uid 
-		ORDER BY users.uid DESC
+		ORDER BY users.uid DESC 
+		LIMIT 1000
 		") or die($mysql["bevforce_users"]->error);
 
 	$total = $users->num_rows;
