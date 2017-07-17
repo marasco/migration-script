@@ -6,7 +6,7 @@
 	];
 
 	$truncates = (object)[
-		"bevforce_dest" => ['companies','post_jobs','job_employment_types','manufacturing_types','beverage_types','areas']
+		"bevforce_dest" => ['companies','post_jobs','employment_types','job_employment_types','areas','manufacturing_types','beverage_types','areas']
 	];	
 
 	include_once "includes/functions.php";
@@ -25,37 +25,26 @@
 	// WHERE users.uid = 110718
 	$total = $jobs->num_rows;
 
-	// Aux 1
-	$states = [];
-	$job_states = $mysql["bevforce_dest"]->query("SELECT * FROM job_states") OR die($mysql["bevforce_dest"]->error);
-
-	while($row = $job_states->fetch_object()) {
-		$states[$row->name] = $row->id;
-	}
-
-	// Aux 2
-	$types = [];
-	$job_types = $mysql["bevforce_dest"]->query("SELECT * FROM employment_types") OR die($mysql["bevforce_dest"]->error);
-
-	while($row = $job_types->fetch_object()) {
-		$types[trim(str_replace(' ','-',$row->name))] = $row->id;
-	}
-
 	while($row = $jobs->fetch_object()) {
 
 		// bev type, industry and 
 
 		$company_id = 0;
 		$company = "";
-
 		$area = "";
 		$area_id = 0;
-
 		$manufacturing_type = "";
 		$manufacturing_type_id = 0;
-
 		$beverage_type = "";
-		$beverage_id = 0;
+		$beverage_type_id = 0;
+		$state_id = 0;
+		$city = addslashes($row->field_city_value);
+		$brand = addslashes($row->field_brand_name_value);
+		$description = addslashes($row->job_description);
+		$requirements = addslashes($row->field_job_requirements_value);
+		$created = date('Y-m-d H:i:s', $row->created);
+		$changed = date('Y-m-d H:i:s', $row->changed);
+		$expired = date('Y-m-d H:i:s', strtotime($row->field_job_expiration_value));
 
 		$terms = $mysql["bevforce"]->query("SELECT term_node.*, term_data.name as value,term_data.vid as node_type
 		FROM term_node 
@@ -77,6 +66,8 @@
 				case 6: // employment-type
 				$area = $term->value;				
 				break;
+				default:
+				break;
 			}
 		}
 
@@ -88,15 +79,20 @@
 			$title = addslashes($row->title);
 		}
 
-		$city = addslashes($row->field_city_value);
-		$brand = addslashes($row->field_brand_name_value);
-		$description = addslashes($row->job_description);
-		$requirements = addslashes($row->field_job_requirements_value);
+		if(!empty($row->field_state_value)){
+			$ucfirst = ucfirst($row->field_state_value);
+			$upper = strtoupper($row->field_state_value);
+			$job_state = $mysql["bevforce_dest"]->query("SELECT id FROM job_states WHERE code = '$upper' OR name = '$ucfirst'") OR die($mysql["bevforce_dest"]->error);
+
+			if($job_state->num_rows){
+				$state_id = $job_state->fetch_object()->id;
+			} 
+		}
 
 		// manufacturing_type
 
 		if(strlen($area)){
-			$manufacturing_type = trim(addslashes($area));
+			$area = trim(addslashes($area));
 			$area_result = $mysql["bevforce_dest"]->query("SELECT id FROM areas WHERE name = '{$area}' LIMIT 1") OR die($mysql["bevforce_dest"]->error);
 
 			if($area_result->num_rows){
@@ -105,26 +101,50 @@
 				$sql = "INSERT INTO areas SET name = '{$area}'";
 				$area_id = $mysql["bevforce_dest"]->query($sql) OR die($mysql["bevforce_dest"]->error);				
 			}
+
+			// save relation
+			$sql = "INSERT INTO job_areas SET job_id = '{$row->nid}', area_id = '{$area_id}'";
+			$area_id = $mysql["bevforce_dest"]->query($sql) OR die($mysql["bevforce_dest"]->error);
 		}
 
+		// employment type
+		if(strlen($row->field_type_value)){
+			// employment type
+			$employment_type = str_replace('-',' ',trim(addslashes($row->field_type_value)));
+			$employment_type_result = $mysql["bevforce_dest"]->query("SELECT id FROM employment_types WHERE name = '{$employment_type}' LIMIT 1") OR die($mysql["bevforce_dest"]->error);
+
+			if($employment_type_result->num_rows){
+				$employment_type_id = $employment_type_result->fetch_object()->id;
+			} else {
+				$sql = "INSERT INTO employment_types SET name = '{$employment_type}'";
+				$employment_type_id = $mysql["bevforce_dest"]->query($sql) OR die($mysql["bevforce_dest"]->error);	
+			}
+
+			// save relation
+			$sql = "INSERT INTO job_employment_types SET job_id = '{$row->nid}', employment_type_id = '{$employment_type_id}'";
+			$area_id = $mysql["bevforce_dest"]->query($sql) OR die($mysql["bevforce_dest"]->error);			
+		}
+
+		// beverage type
 		if(strlen($beverage_type)){
 			$beverage_type = trim(addslashes($beverage_type));
 			$beverage_result = $mysql["bevforce_dest"]->query("SELECT id FROM beverage_types WHERE name = '{$beverage_type}' LIMIT 1") OR die($mysql["bevforce_dest"]->error);
 
 			if($beverage_result->num_rows){
-				$beverage_id = $beverage_result->fetch_object()->id;
+				$beverage_type_id = $beverage_result->fetch_object()->id;
 			} else {
 				$sql = "INSERT INTO beverage_types SET name = '{$beverage_type}'";
-				$beverage_id = $mysql["bevforce_dest"]->query($sql) OR die($mysql["bevforce_dest"]->error);				
+				$beverage_type_id = $mysql["bevforce_dest"]->query($sql) OR die($mysql["bevforce_dest"]->error);				
 			}
 		}
 
+		// industry type
 		if(strlen($manufacturing_type)){
 			$manufacturing_type = trim(addslashes($manufacturing_type));
-			$industry_type_result = $mysql["bevforce_dest"]->query("SELECT id FROM manufacturing_types WHERE name = '{$manufacturing_type}' LIMIT 1") OR die($mysql["bevforce_dest"]->error);
+			$manufacturing_type_result = $mysql["bevforce_dest"]->query("SELECT id FROM manufacturing_types WHERE name = '{$manufacturing_type}' LIMIT 1") OR die($mysql["bevforce_dest"]->error);
 
-			if($industry_type_result->num_rows){
-				$manufacturing_type_id = $industry_type_result->fetch_object()->id;
+			if($manufacturing_type_result->num_rows){
+				$manufacturing_type_id = $manufacturing_type_result->fetch_object()->id;
 			} else {
 				$sql = "INSERT INTO manufacturing_types SET name = '{$manufacturing_type}'";
 				$manufacturing_type_id = $mysql["bevforce_dest"]->query($sql) OR die($mysql["bevforce_dest"]->error);				
@@ -160,19 +180,17 @@
 			}
 		}
 
-		$created = date('Y-m-d H:i:s', $row->created);
-		$changed = date('Y-m-d H:i:s', $row->changed);
-		$expired = date('Y-m-d H:i:s', strtotime($row->field_job_expiration_value));
 
 		// jobs
 		$sql = "INSERT INTO post_jobs SET 
 		user_id = '{$row->uid}',
 		company_id = '{$company_id}',
 		manufacturing_type_id = '{$manufacturing_type_id}',
+		beverage_type_id = '{$beverage_type_id}',
 		title = '{$title}',
 		city = '{$city}',
 		brand = '{$brand}',
-		state_id = '{$row->field_state_value}',
+		state_id = '{$state_id}',
 		zip_code = '{$row->field_zip_value}',
 		reports_to = '{$row->field_job_reports_to_value}',
 		of_reports = '{$row->field_job_direct_reports_value}',
@@ -187,18 +205,6 @@
 		$insert_row_id = $mysql["bevforce_dest"]->query($sql) OR $errors[] = $sql . ' => ' . $mysql["bevforce_dest"]->error;
 
 		if($insert_row_id){
-
-			// employment type
-			$employment_type = !empty($types[$row->field_type_value])?$types[$row->field_type_value]:0;
-
-			if($employment_type){
-				$sql = "INSERT INTO job_employment_types SET job_id = '{$insert_row_id}',employment_type_id = '{$employment_type}'";
-				$mysql["bevforce_dest"]->query($sql) OR die($mysql["bevforce_dest"]->error);
-			} else {
-				print colorize("Note: Employment type not found: " . $row->field_type_value,"WARNING");
-				echo "\n";
-			}
-
 			$inserted++;
 		}
 
