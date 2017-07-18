@@ -18,7 +18,6 @@
 	FROM bf_files
 	WHERE type IN('cover-letter','resume') 
 	GROUP BY fid 
-	LIMIT 1000
 	") or die($mysql["bevforce_users"]->error);
 
 	// WHERE users.uid = 110718
