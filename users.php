@@ -1,25 +1,26 @@
 <?php 
 	
 	$connections = (object)[
-		"bevforce" => ['localhost','root','eNWM@[v5FC^y'],
+		"bevforce_users" => ['localhost','root','eNWM@[v5FC^y'],
 		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y']
 	];
 
 	$truncates = (object)[
-		"bevforce_dest" => ['users','user_cover_letter','user_resumes']
+		"bevforce_dest" => ['users']
 	];
 
 	include_once "includes/functions.php";
 	include "includes/routine.php";
 
 	// Users and roles
-	$users = $mysql["bevforce"]->query("SELECT users.*, users_roles.rid, role.name AS role 
+	$users = $mysql["bevforce_users"]->query("SELECT users.*, users_roles.rid, role.name AS role 
 		FROM users 
 		LEFT JOIN users_roles ON users_roles.uid = users.uid 
 		LEFT JOIN role ON role.rid = users_roles.rid 
 		GROUP BY users.uid 
 		ORDER BY users.uid DESC 
-		") or die($mysql["bevforce"]->error);
+		LIMIT 1000
+		") or die($mysql["bevforce_users"]->error);
 
 	$total = $users->num_rows;
 
@@ -36,11 +37,11 @@
 		$salesforce = "";
 
 		// Users and roles
-		$extra = $mysql["bevforce"]->query("SELECT `key`, `value`  
+		$extra = $mysql["bevforce_users"]->query("SELECT `key`, `value`  
 			FROM bf_users_options 
 			WHERE `key` IN('about','address','company_name','first_name','last_name','linkedin','salesForceId','zip') 
 			AND uid = {$row->uid}
-			") or die($mysql["bevforce"]->error);
+			") or die($mysql["bevforce_users"]->error);
 
 		$extras = [];
 		while($row2 = $extra->fetch_object()) {
@@ -96,7 +97,7 @@
 			}		
 		}
 
-		if(trim($work) == "" AND !empty($data->uf_company_name)){
+		if(trim($work) == "" AND !empty($data->uf_company_name) AND trim($data->uf_company_name) != ""){
 			$work.= $data->uf_company_name;
 		}
 

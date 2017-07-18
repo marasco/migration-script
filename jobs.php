@@ -1,7 +1,7 @@
 <?php 
 	
 	$connections = (object)[
-		"bevforce" => ['localhost','root','eNWM@[v5FC^y'],
+		"bevforce_jobs" => ['localhost','root','eNWM@[v5FC^y'],
 		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y']
 	];
 
@@ -13,14 +13,15 @@
 	include "includes/routine.php";
 
 	// Main list
-	$jobs = $mysql["bevforce"]->query("SELECT node.*, content_type_job.*, 
+	$jobs = $mysql["bevforce_jobs"]->query("SELECT node.*, content_type_job.*, 
 		node_revisions.title as job_title, node_revisions.body as job_description
 		FROM node
 		LEFT JOIN node_revisions ON node_revisions.nid = node.nid  
 		LEFT JOIN content_type_job ON node.nid = content_type_job.nid 
 		WHERE node.type = 'job' 
 		GROUP BY content_type_job.nid 
-		") OR die($mysql["bevforce"]->error);
+		LIMIT 1000
+		") OR die($mysql["bevforce_jobs"]->error);
 
 	// WHERE users.uid = 110718
 	$total = $jobs->num_rows;
@@ -49,11 +50,11 @@
 		$changed = date('Y-m-d H:i:s', $row->changed);
 		$expired = date('Y-m-d H:i:s', strtotime($row->field_job_expiration_value));
 
-		$terms = $mysql["bevforce"]->query("SELECT term_node.*, term_data.name as value,term_data.vid as node_type
+		$terms = $mysql["bevforce_jobs"]->query("SELECT term_node.*, term_data.name as value,term_data.vid as node_type
 		FROM term_node 
 		LEFT JOIN term_data ON term_data.tid = term_node.tid 
 		WHERE term_node.nid = '{$row->nid}'
-		") OR die($mysql["bevforce"]->error);
+		") OR die($mysql["bevforce_jobs"]->error);
 
 		while($term = $terms->fetch_object()) {	
 			switch($term->node_type){
@@ -174,7 +175,7 @@
 			} else {
 				
 				$logo = "";
-				$logo_result = $mysql["bevforce"]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1") OR die($mysql["bevforce"]->error);
+				$logo_result = $mysql["bevforce_jobs"]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1") OR die($mysql["bevforce_jobs"]->error);
 
 				if($logo_result->num_rows){
 					$logo = $logo_result->fetch_object()->filepath;
