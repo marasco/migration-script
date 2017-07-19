@@ -25,6 +25,11 @@
 
 	while($row = $users->fetch_object()) {
 
+		if ($row->role != 'master_employer' && $row->role != 'job_seeker'){
+			// get off
+			continue;
+		}
+
 		//echo $row->uid . ",";
 		$title = "";
 		$bio = "";
@@ -34,6 +39,7 @@
 		$address = "";
 		$linkedin = "";
 		$salesforce = "";
+		$role = 'candidate';
 
 		// Users and roles
 		$extra = $mysql["bevforce_users"]->query("SELECT `key`, `value`  
@@ -49,6 +55,10 @@
 
 		// embeded users object
 		$data = (object) @unserialize($row->data);
+		
+		if ($row->role == 'master_employer'){
+			$role = 'client';
+		}
 
 		if(!empty($extras->first_name)){
 			$name.= $extras->first_name;
@@ -140,7 +150,7 @@
 
 		$sql = "INSERT INTO users 
 			(id,role, name, address, zip_code, work, title, email, biography, linkedin_id, salesforce_id, profile_picture, password, status, created_at, updated_at) VALUES
-			($row->uid, '{$row->role}', '{$name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$linkedin}','{$salesforce}','{$row->picture}', '{$row->pass}', 'migration', NOW(), NOW())
+			($row->uid, '{$role}', '{$name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$linkedin}','{$salesforce}','{$row->picture}', '{$row->pass}', 'migration', NOW(), NOW())
 		";
 
 		$insert_row = $mysql["bevforce_dest"]->query($sql) OR $errors[] = $sql . ' => ' . $mysql["bevforce_dest"]->error;
