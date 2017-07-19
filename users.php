@@ -143,7 +143,14 @@
 			$company_result = $mysql["bevforce_dest"]->query("SELECT id FROM companies WHERE LOWER(name) = '" . strtolower($work) . "' LIMIT 1") OR die($mysql["bevforce_dest"]->error);
 
 			if( ! $company_result->num_rows){
-				$sql = "INSERT INTO companies SET name = '{$work}'";
+
+				$logo_result = $mysql["bevforce_jobs"]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1") OR die($mysql["bevforce_jobs"]->error);
+
+				if($logo_result->num_rows){
+					$logo = $logo_result->fetch_object()->filepath;
+				}
+
+				$sql = "INSERT INTO companies SET name = '{$work}', user_id = '{$row->uid}', logo = '{$logo}'";
 				$company_id = $mysql["bevforce_dest"]->query($sql) OR die($mysql["bevforce_dest"]->error);
 			}
 		}
