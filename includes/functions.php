@@ -144,7 +144,7 @@
             $details = substr($details, 0, $lineWidth-1);
         }
 
-        echo "$details                      \n$status_bar";
+        echo "$details                    \n$status_bar";
 
         flush();
 

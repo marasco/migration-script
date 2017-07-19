@@ -1,7 +1,7 @@
 <?php 
 
 	$connections = (object)[
-		"bevforce_jobs" => ['localhost','root','eNWM@[v5FC^y']
+		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y']
 	];
 
 	include_once "includes/functions.php";
