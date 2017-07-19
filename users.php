@@ -126,6 +126,18 @@
 			$name = trim(addslashes($row->name));
 		}
 		
+		if($row->role=="employer"){
+			$company_id = 0;
+			$logo = "";
+
+			$company_result = $mysql["bevforce_dest"]->query("SELECT id FROM companies WHERE LOWER(name) = '" . strtolower($work) . "' LIMIT 1") OR die($mysql["bevforce_dest"]->error);
+
+			if( ! $company_result->num_rows){
+				$sql = "INSERT INTO companies SET name = '{$work}'";
+				$company_id = $mysql["bevforce_dest"]->query($sql) OR die($mysql["bevforce_dest"]->error);
+			}
+		}
+
 		$sql = "INSERT INTO users 
 			(id,role, name, address, zip_code, work, title, email, biography, linkedin_id, salesforce_id, profile_picture, password, status, created_at, updated_at) VALUES
 			($row->uid, '{$row->role}', '{$name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$linkedin}','{$salesforce}','{$row->picture}', '{$row->pass}', 'migration', NOW(), NOW())
