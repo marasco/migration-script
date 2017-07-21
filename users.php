@@ -14,6 +14,7 @@
 	include "includes/routine.php";
 
 	// Users and roles
+	$users = $mysql[$db_source]->query("SET sql_mode = ''"); 
 	$users = $mysql[$db_source]->query("SELECT users.*, users_roles.rid, role.name AS role 
 		FROM users 
 		LEFT JOIN users_roles ON users_roles.uid = users.uid 
