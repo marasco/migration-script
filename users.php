@@ -35,6 +35,7 @@
 		$title = "";
 		$bio = "";
 		$name = "";
+		$last_name = "";
 		$zip = "";
 		$work = "";
 		$address = "";
@@ -62,11 +63,11 @@
 		}
 
 		if(!empty($extras->first_name)){
-			$name.= $extras->first_name;
+			$name = $extras->first_name;
 		}
 
 		if(!empty($extras->last_name)){
-			$name.= $extras->last_name;
+			$last_name = $extras->last_name;
 		}
 
 		if(!empty($extras->company_name)){
@@ -103,7 +104,7 @@
 			}
 
 			if(!empty($data->uf_last_name)) {
-				$name.= " " . $data->uf_last_name;
+				$last_name = $data->uf_last_name;
 			}		
 		}
 
@@ -124,6 +125,7 @@
 		}
 
 		$name = trim(addslashes($name));
+		$last_name = trim(addslashes($last_name));
 		$title = trim(addslashes($title));
 		$zip = trim(addslashes($zip));
 		$work = trim(addslashes($work));
@@ -157,8 +159,8 @@
 		}
 
 		$sql = "INSERT INTO users 
-			(id,role, name, address, zip_code, work, title, email, biography, linkedin_id, salesforce_id, profile_picture, password, status, created_at, updated_at) VALUES
-			($row->uid, '{$role}', '{$name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$linkedin}','{$salesforce}','{$row->picture}', '{$row->pass}', 'migration', NOW(), NOW())
+			(id,role, name, last_name, address, zip_code, work, title, email, biography, linkedin_id, salesforce_id, profile_picture, password, status, created_at, updated_at) VALUES
+			($row->uid, '{$role}', '{$name}', '{$last_name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$linkedin}','{$salesforce}','{$row->picture}', '{$row->pass}', 'migration', NOW(), NOW())
 		";
 
 		$insert_row = $mysql[$db_destination]->query($sql) OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
