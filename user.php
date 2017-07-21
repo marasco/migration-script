@@ -1,8 +1,11 @@
 <?php 
+	require_once 'config.db.php';
 
 	$connections = (object)[
-		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y','bevforce']
+		$db_source => [$db_host,$db_user,$db_pass],
+		$db_destination => [$db_host,$db_user,$db_pass, $brand]
 	];
+
 
 	include_once "includes/functions.php";
 	include "includes/routine.php";
@@ -23,7 +26,7 @@
 	$wheresql = implode(" AND ", $where);
 
 	// Users and roles
-	$users = $mysql["bevforce_dest"]->query("
+	$users = $mysql[$db_destination]->query("
 
 		SELECT users.*, user_cover_letter.path_file as cover_letter, user_resumes.path_file as resume 
 		FROM users
@@ -32,21 +35,21 @@
 		WHERE {$wheresql}
 		GROUP BY users.id
 
-		") OR die($mysql["bevforce_dest"]->error);
+		") OR die($mysql[$db_destination]->error);
 
 	$json = [];
 	if($users->num_rows){
 
 		while($row = $users->fetch_object()) {
 
-			$applications = $mysql["bevforce_dest"]->query("
+			$applications = $mysql[$db_destination]->query("
 			SELECT job_applications.*, user_cover_letter.path_file AS cover_letter, user_resumes.path_file AS resume,
 			post_jobs.title, post_jobs.brand  
 			FROM job_applications
 			LEFT JOIN post_jobs ON post_jobs.id = job_applications.job_id 
 			LEFT JOIN user_cover_letter ON user_cover_letter.id = job_applications.cover_letter_id 
 			LEFT JOIN user_resumes ON user_resumes.user_id = job_applications.resume_id  
-			WHERE job_applications.user_id = '{$row->id}'") OR die($mysql["bevforce_dest"]->error);
+			WHERE job_applications.user_id = '{$row->id}'") OR die($mysql[$db_destination]->error);
 
 			$apps = [];
 			while($app = $applications->fetch_object()) {

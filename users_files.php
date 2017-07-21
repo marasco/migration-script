@@ -1,24 +1,25 @@
 <?php 
+	require_once 'config.db.php';
 
 	$connections = (object)[
-		"bevforce_users" => ['localhost','root','eNWM@[v5FC^y'],
-		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y']
+		$db_source => [$db_host,$db_user,$db_pass],
+		$db_destination => [$db_host,$db_user,$db_pass]
 	];
 
 	$truncates = (object)[
-		"bevforce_dest" => ['user_resumes','user_cover_letter']
+		$db_destination => ['user_resumes','user_cover_letter']
 	];
 
 	include_once "includes/functions.php";
 	include "includes/routine.php";
 
 	// Users and roles
-	$users = $mysql["bevforce_users"]->query("
+	$users = $mysql[$db_source]->query("
 	SELECT *
 	FROM bf_files
 	WHERE type IN('cover-letter','resume') 
 	GROUP BY fid 
-	") or die($mysql["bevforce_users"]->error);
+	") or die($mysql[$db_source]->error);
 
 	// WHERE users.uid = 110718
 
@@ -39,7 +40,7 @@
 			(id, user_id,name_file, path_file, created_at, updated_at) VALUES
 			($row->fid, $row->uid, '{$row->filename}', '{$row->fileurl}', NOW(), NOW())
 			";
-			$insert_row = $mysql["bevforce_dest"]->query($sql) OR $errors[] = $sql . ' => ' . $mysql["bevforce_dest"]->error;
+			$insert_row = $mysql[$db_destination]->query($sql) OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
 		}
 
 		if($insert_row){

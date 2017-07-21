@@ -1,25 +1,26 @@
 <?php 
-	
+	require_once 'config.db.php';
+
 	$connections = (object)[
-		"bevforce_users" => ['localhost','root','eNWM@[v5FC^y'],
-		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y']
+		$db_source => [$db_host,$db_user,$db_pass],
+		$db_destination => [$db_host,$db_user,$db_pass]
 	];
 
 	$truncates = (object)[
-		"bevforce_dest" => ['users']
+		$db_destination => ['users']
 	];
 
 	include_once "includes/functions.php";
 	include "includes/routine.php";
 
 	// Users and roles
-	$users = $mysql["bevforce_users"]->query("SELECT users.*, users_roles.rid, role.name AS role 
+	$users = $mysql[$db_source]->query("SELECT users.*, users_roles.rid, role.name AS role 
 		FROM users 
 		LEFT JOIN users_roles ON users_roles.uid = users.uid 
 		LEFT JOIN role ON role.rid = users_roles.rid 
 		GROUP BY users.uid 
 		ORDER BY users.uid DESC 
-		") or die($mysql["bevforce_users"]->error);
+		") or die($mysql[$db_source]->error);
 
 	$total = $users->num_rows;
 
@@ -42,11 +43,11 @@
 		$role = 'candidate';
 
 		// Users and roles
-		$extra = $mysql["bevforce_users"]->query("SELECT `key`, `value`  
+		$extra = $mysql[$db_source]->query("SELECT `key`, `value`  
 			FROM bf_users_options 
 			WHERE `key` IN('about','address','company_name','first_name','last_name','linkedin','salesForceId','zip') 
 			AND uid = {$row->uid}
-			") or die($mysql["bevforce_users"]->error);
+			") or die($mysql[$db_source]->error);
 
 		$extras = [];
 		while($row2 = $extra->fetch_object()) {
@@ -140,7 +141,7 @@
 			$company_id = 0;
 			$logo = "";
 
-			$company_result = $mysql["bevforce_dest"]->query("SELECT id FROM companies WHERE LOWER(name) = '" . strtolower($work) . "' LIMIT 1") OR die($mysql["bevforce_dest"]->error);
+			$company_result = $mysql[$db_destination]->query("SELECT id FROM companies WHERE LOWER(name) = '" . strtolower($work) . "' LIMIT 1") OR die($mysql[$db_destination]->error);
 
 			if( ! $company_result->num_rows){
 
@@ -151,7 +152,7 @@
 				}
 
 				$sql = "INSERT INTO companies SET name = '{$work}', user_id = '{$row->uid}', logo = '{$logo}'";
-				$company_id = $mysql["bevforce_dest"]->query($sql) OR die($mysql["bevforce_dest"]->error);
+				$company_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);
 			}
 		}
 
@@ -160,7 +161,7 @@
 			($row->uid, '{$role}', '{$name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$linkedin}','{$salesforce}','{$row->picture}', '{$row->pass}', 'migration', NOW(), NOW())
 		";
 
-		$insert_row = $mysql["bevforce_dest"]->query($sql) OR $errors[] = $sql . ' => ' . $mysql["bevforce_dest"]->error;
+		$insert_row = $mysql[$db_destination]->query($sql) OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
 
 		if($insert_row){
 			$inserted++;
