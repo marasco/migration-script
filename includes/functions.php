@@ -9,7 +9,7 @@
         global $mysql;
         foreach($trunc as $id => $tables){
             foreach($tables as $table){
-                print colorize("Note: {$id}.{$table} will be truncated","WARNING");
+                print colorize("{$id}.{$table} truncated","WARNING");
                 $mysql[$id]->query("SET FOREIGN_KEY_CHECKS = 0;");
                 $mysql[$id]->query("TRUNCATE " . $table . ";");
                 $mysql[$id]->query("SET FOREIGN_KEY_CHECKS = 1;");
@@ -19,22 +19,25 @@
     }
 
     function endscript(){
-        global $errors, $options, $mysql, $inserted;
+        global $errors, $options, $mysql, $inserted,$db_source,$db_destination,$db_host,$db_user,$db_pass,$brand, $connections;
 
         $inserted = 0;
         $errors = [];   
         $ext = ".php";
         $with = !empty($options['w'])?$options['w']:0;
         $source = str_replace($ext,"",$_SERVER["SCRIPT_NAME"]);
-        $target = $source . "_" . $with . $ext;
+        $mods = explode(",",$with);
 
-        if($with){
+        foreach($mods as $mod){
+
+            $target = $source . "_" . $mod . $ext;
+
             if(file_exists($target)){
                 include_once $target;
             } else {
                 print colorize("\nError: ". $target  . " does not exists","FAILURE");
             }            
-        }        
+        }
 
         close_connections();
     }
@@ -61,11 +64,6 @@
 
     function show_status($errors, $inserted, $total){
         $status = "";
-        if(count($errors)){
-            foreach($errors as $e){
-                $status.= colorize("\nError: " . $e,"FAILURE");
-            }
-        }
 
         $perc = floor($inserted/$total*100);
         $icon = "👑";
@@ -97,6 +95,18 @@
     }
 
     function show_cli_progress($done, $total, $size=30, $lineWidth=-1) {
+
+        global $errors;
+
+        $status = "";
+
+        if(count($errors)){
+            foreach($errors as $e){
+                $status.= colorize("\nError: " . $e,"FAILURE");
+            }
+            die($status);
+        }
+
         if($lineWidth <= 0){
             $lineWidth =  exec("tput cols");
         }
