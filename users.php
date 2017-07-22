@@ -1,10 +1,6 @@
 <?php 
+	
 	require_once 'config.db.php';
-
-	$connections = (object)[
-		$db_source => [$db_host,$db_user,$db_pass],
-		$db_destination => [$db_host,$db_user,$db_pass]
-	];
 
 	$truncates = (object)[
 		$db_destination => ['users']
