@@ -49,7 +49,7 @@
 		// Users and roles
 		$extra = $mysql[$db_source]->query("SELECT `key`, `value`  
 			FROM bf_users_options 
-			WHERE `key` IN('about','address','company_name','first_name','last_name', 'salesForceId', 'zip', 'city', 'state', 'phone', 'user_title', 'employees') 
+			WHERE `key` IN('about','address','company_name','first_name','last_name', 'salesForceId', 'zip', 'city', 'state', 'phone', 'user_title', 'employees', 'last_job_employer', 'last_job_title') 
 			AND uid = {$row->uid}
 			") or die($mysql[$db_source]->error);
 
@@ -101,6 +101,14 @@
 		if(!empty($extras['salesForceId'])){
 			$salesforce.= $extras['salesForceId'];
 		}	
+
+		if(empty(trim($work)) && !empty($extras['last_job_employer'])){
+			$work = $extras['last_job_employer'];
+		}
+		if(empty(trim($title)) && !empty($extras['last_job_title'])){
+			$work = $extras['last_job_employer'];
+		}
+
 
 		// users.data
 		if(trim($name)=="" && !empty($data->first_name)){
@@ -164,8 +172,8 @@
 		}
 
 		$sql = "INSERT INTO users 
-			(id,role, name, last_name, address, zip_code, work, title, email, biography, salesforce_id, profile_picture, password, status, created_at, updated_at,verified) VALUES
-			($row->uid, '{$role}', '{$name}', '{$last_name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$salesforce}','{$picture}', '{$row->pass}', 'active', NOW(), NOW(),1)
+			(id,role, name, last_name, address, zip_code, work, title, email, biography, salesforce_id, profile_picture, password, status, created_at, updated_at,verified, brand) VALUES
+			($row->uid, '{$role}', '{$name}', '{$last_name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$salesforce}','{$picture}', '{$row->pass}', 'active', NOW(), NOW(),1, {$brand})
 		";
 		try { 
 			$insert_row = $mysql[$db_destination]->query($sql); // OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
