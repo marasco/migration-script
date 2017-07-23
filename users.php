@@ -10,7 +10,7 @@
 	include_once "includes/routine.php";
 
 	if (empty($stringLimit)){
-		$stringLimit = " LIMIT 0,1000 ";
+		$stringLimit = "";
 		$stringLimit = startscript($stringLimit);
 	}
 	// Users and roles
@@ -40,6 +40,7 @@
 		$last_name = "";
 		$zip = "";
 		$work = "";
+		$picture = $row->picture;
 		$address = "";
 		$linkedin = "";
 		$salesforce = "";
@@ -153,6 +154,8 @@
 
 				if($logo_result->num_rows){
 					$logo = $logo_result->fetch_object()->filepath;
+					$path_parts = pathinfo($logo);
+					$logo = $path_parts['basename'];
 				}
 
 				$sql = "INSERT INTO companies SET name = '{$work}', user_id = '{$row->uid}', logo = '{$logo}', linkedin_url = '{$linkedin}'";
@@ -162,7 +165,7 @@
 
 		$sql = "INSERT INTO users 
 			(id,role, name, last_name, address, zip_code, work, title, email, biography, salesforce_id, profile_picture, password, status, created_at, updated_at,verified) VALUES
-			($row->uid, '{$role}', '{$name}', '{$last_name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$salesforce}','{$row->picture}', '{$row->pass}', 'active', NOW(), NOW(),1)
+			($row->uid, '{$role}', '{$name}', '{$last_name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$salesforce}','{$picture}', '{$row->pass}', 'active', NOW(), NOW(),1)
 		";
 		try { 
 			$insert_row = $mysql[$db_destination]->query($sql); // OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;

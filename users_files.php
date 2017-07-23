@@ -12,7 +12,7 @@
 
 
 	if (empty($stringLimit)){
-		$stringLimit = " LIMIT 0,1000 ";
+		$stringLimit = " ";
 		$stringLimit = startscript($stringLimit);
 	}
 
