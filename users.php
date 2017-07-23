@@ -8,6 +8,9 @@
 
 	include_once "includes/functions.php";
 	include_once "includes/routine.php";
+	
+	if (empty($brand))
+		$brand = 'bevforce';
 
 	if (empty($stringLimit)){
 		$stringLimit = "";
@@ -106,7 +109,7 @@
 			$work = $extras['last_job_employer'];
 		}
 		if(empty(trim($title)) && !empty($extras['last_job_title'])){
-			$work = $extras['last_job_employer'];
+			$title = $extras['last_job_title'];
 		}
 
 
@@ -156,8 +159,7 @@
 
 			// force to create
 			//if(1 || ! $company_result->num_rows){
-				$logo_result = $mysql[$db_source]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1");
-				// OR die($mysql[$db_source]->error);
+				$logo_result = $mysql[$db_source]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1") OR die($mysql[$db_source]->error);
 
 				if($logo_result->num_rows){
 					$logo = $logo_result->fetch_object()->filepath;
@@ -166,14 +168,13 @@
 				}
 
 				$sql = "INSERT INTO companies SET name = '{$work}', user_id = '{$row->uid}', logo = '{$logo}', linkedin_url = '{$linkedin}'";
-				$company_id = $mysql[$db_destination]->query($sql);
-				// OR die($mysql[$db_destination]->error);
+				$company_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);
 			//}
 		}
 
 		$sql = "INSERT INTO users 
 			(id,role, name, last_name, address, zip_code, work, title, email, biography, salesforce_id, profile_picture, password, status, created_at, updated_at,verified, brand) VALUES
-			($row->uid, '{$role}', '{$name}', '{$last_name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$salesforce}','{$picture}', '{$row->pass}', 'active', NOW(), NOW(),1, {$brand})
+			($row->uid, '{$role}', '{$name}', '{$last_name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$salesforce}','{$picture}', '{$row->pass}', 'active', NOW(), NOW(),1, '{$brand}')
 		";
 		try { 
 			$insert_row = $mysql[$db_destination]->query($sql); // OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
