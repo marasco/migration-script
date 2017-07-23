@@ -2,19 +2,26 @@
 	
 	require_once 'config.db.php';
 
+
 	$truncates = (object)[
-		$db_destination => ['user_resumes','user_cover_letter']
+		$db_destination => ['user_resumes', 'user_cover_letter']
 	];
 
 	include_once "includes/functions.php";
-	include "includes/routine.php";
+	include_once "includes/routine.php";
+
+
+	if (empty($stringLimit)){
+		$stringLimit = " LIMIT 0,1000 ";
+		$stringLimit = startscript($stringLimit);
+	}
 
 	// Users and roles
 	$users = $mysql[$db_source]->query("
 	SELECT *
 	FROM bf_files
 	WHERE type IN('cover-letter','resume') 
-	GROUP BY fid 
+	GROUP BY fid {$stringLimit} 
 	") or die($mysql[$db_source]->error);
 
 	// WHERE users.uid = 110718
@@ -29,6 +36,8 @@
 			$table = "user_resumes";
 		} else if($row->type == 'cover-letter'){
 			$table = "user_cover_letter";
+		}else{
+			continue;
 		}
 
 		if(strlen($table)){
@@ -36,7 +45,12 @@
 			(id, user_id,name_file, path_file, created_at, updated_at) VALUES
 			($row->fid, $row->uid, '{$row->filename}', '{$row->fileurl}', NOW(), NOW())
 			";
-			$insert_row = $mysql[$db_destination]->query($sql) OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
+			
+			try { 
+				$insert_row = $mysql[$db_destination]->query($sql); // OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
+			} catch (\Exception $e){
+				$errors[] = $sql . ' => ' . $e->getMessage();
+			}
 		}
 
 		if($insert_row){

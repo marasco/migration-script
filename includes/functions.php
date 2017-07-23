@@ -2,7 +2,7 @@
     
     //include_once "includes/progress.php";
 
-    $commands = "t:r:i:n:c:w:s:e:";
+    $commands = "t:r:i:n:c:w:s:e:l:";
     $options = getopt($commands);
 
     function truncate($trunc){
@@ -18,6 +18,16 @@
         echo "\n";
     }
 
+    function startscript($default = ''){
+        global $options, $stringLimit;
+        print_r($options);
+        if (!empty($options['l'])) {
+            $stringLimit = ' LIMIT ' .$options['l']. ' ';
+            return $stringLimit;
+        }
+        return $default;
+
+    }
     function endscript(){
         global $errors, $options, $mysql, $inserted,$db_source,$db_destination,$db_host,$db_user,$db_pass,$brand, $connections;
 

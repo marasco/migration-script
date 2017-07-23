@@ -1,15 +1,18 @@
 <?php 
-	$limit = 'LIMIT 1000';
 
 	require_once 'config.db.php';
-
+ 
 	$truncates = (object)[
 		$db_destination => ['users']
 	];
 
 	include_once "includes/functions.php";
-	include "includes/routine.php";
+	include_once "includes/routine.php";
 
+	if (empty($stringLimit)){
+		$stringLimit = " LIMIT 0,1000 ";
+		$stringLimit = startscript($stringLimit);
+	}
 	// Users and roles
 	$users = $mysql[$db_source]->query("SET sql_mode = ''"); 
 	$users = $mysql[$db_source]->query("SELECT users.*, users_roles.rid, role.name AS role 
@@ -18,9 +21,8 @@
 		LEFT JOIN role ON role.rid = users_roles.rid 
 		GROUP BY users.uid 
 		ORDER BY users.uid DESC
-		$limit 
+		 {$stringLimit}
 		") or die($mysql[$db_source]->error);
-	die;
 	$total = $users->num_rows;
 
 	while($row = $users->fetch_object()) {
@@ -75,6 +77,10 @@
 			$phone = $extras->phone;
 		}
 
+		if(!empty($extras->address)){
+			$address = $extras->address;
+		}
+
 		if(!empty($extras->company_name)){
 			$work.= $extras->company_name;
 		}
@@ -114,13 +120,8 @@
 			$zip.= $data->uf_zip;
 		}
 
-		if(!empty($data->uf_city)){
-			$address.= " " . $data->uf_city;
-		}
+		 
 
-		if(!empty($data->uf_state)){
-			$address.= ", " . $data->uf_state;
-		}
 
 		$name = trim(addslashes($name));
 		$last_name = trim(addslashes($last_name));
@@ -163,9 +164,11 @@
 			(id,role, name, last_name, address, zip_code, work, title, email, biography, salesforce_id, profile_picture, password, status, created_at, updated_at,verified) VALUES
 			($row->uid, '{$role}', '{$name}', '{$last_name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$salesforce}','{$row->picture}', '{$row->pass}', 'active', NOW(), NOW(),1)
 		";
-
-		$insert_row = $mysql[$db_destination]->query($sql) OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
-
+		try { 
+			$insert_row = $mysql[$db_destination]->query($sql); // OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
+		} catch (\Exception $e){
+			$errors[] = $sql . ' => ' . $e->getMessage();
+		}
 		if($insert_row){
 			$inserted++;
 		}
