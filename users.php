@@ -66,40 +66,40 @@
 		}
 
 		// bf_users_options
-		if(!empty($extras->first_name)){
-			$name = $extras->first_name;
+		if(!empty($extras['first_name'])){
+			$name = $extras['first_name'];
 		}
 
-		if(!empty($extras->last_name)){
-			$last_name = $extras->last_name;
+		if(!empty($extras['last_name'])){
+			$last_name = $extras['last_name'];
 		}
 
-		if(!empty($extras->phone)){
-			$phone = $extras->phone;
+		if(!empty($extras['phone'])){
+			$phone = $extras['phone'];
 		}
 
-		if(!empty($extras->address)){
-			$address = $extras->address;
+		if(!empty($extras['address'])){
+			$address = $extras['address'];
 		}
 
-		if(!empty($extras->company_name)){
-			$work.= $extras->company_name;
+		if(!empty($extras['company_name'])){
+			$work = $extras['company_name'];
 		}
 
-		if(!empty($extras->zip)){
-			$zip.= $extras->zip;
+		if(!empty($extras['zip'])){
+			$zip.= $extras['zip'];
 		}
 
-		if(!empty($extras->about)){
-			$bio.= $extras->about;
+		if(!empty($extras['about'])){
+			$bio.= $extras['about'];
 		}
 
-		if(!empty($extras->user_title)){
-			$title.= $extras->user_title;
+		if(!empty($extras['user_title'])){
+			$title.= $extras['user_title'];
 		}	
 
-		if(!empty($extras->salesForceId)){
-			$salesforce.= $extras->salesForceId;
+		if(!empty($extras['salesForceId'])){
+			$salesforce.= $extras['salesForceId'];
 		}	
 
 		// users.data
@@ -114,7 +114,7 @@
 		} 
 
 		if(trim($work) == "" AND !empty($data->uf_company_name) AND trim($data->uf_company_name) != ""){
-			$work.= $data->uf_company_name;
+			$work = $data->uf_company_name;
 		}
 
 		if(trim($zip) == "" AND !empty($data->uf_zip)){
