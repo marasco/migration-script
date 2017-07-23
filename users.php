@@ -1,5 +1,6 @@
 <?php 
-	
+	$limit = 'LIMIT 1000';
+
 	require_once 'config.db.php';
 
 	$truncates = (object)[
@@ -16,9 +17,10 @@
 		LEFT JOIN users_roles ON users_roles.uid = users.uid 
 		LEFT JOIN role ON role.rid = users_roles.rid 
 		GROUP BY users.uid 
-		ORDER BY users.uid DESC 
+		ORDER BY users.uid DESC
+		$limit 
 		") or die($mysql[$db_source]->error);
-
+	die;
 	$total = $users->num_rows;
 
 	while($row = $users->fetch_object()) {
@@ -32,6 +34,7 @@
 		$title = "";
 		$bio = "";
 		$name = "";
+		$phone = "";
 		$last_name = "";
 		$zip = "";
 		$work = "";
@@ -43,7 +46,7 @@
 		// Users and roles
 		$extra = $mysql[$db_source]->query("SELECT `key`, `value`  
 			FROM bf_users_options 
-			WHERE `key` IN('about','address','company_name','first_name','last_name','linkedin','salesForceId','zip') 
+			WHERE `key` IN('about','address','company_name','first_name','last_name', 'salesForceId', 'zip', 'city', 'state', 'phone', 'user_title', 'employees') 
 			AND uid = {$row->uid}
 			") or die($mysql[$db_source]->error);
 
@@ -59,12 +62,17 @@
 			$role = 'client';
 		}
 
+		// bf_users_options
 		if(!empty($extras->first_name)){
 			$name = $extras->first_name;
 		}
 
 		if(!empty($extras->last_name)){
 			$last_name = $extras->last_name;
+		}
+
+		if(!empty($extras->phone)){
+			$phone = $extras->phone;
 		}
 
 		if(!empty($extras->company_name)){
@@ -79,31 +87,24 @@
 			$bio.= $extras->about;
 		}
 
-		if(!empty($extras->last_job_title)){
-			$title.= $extras->last_job_title;
-		}	
-
-		if(!empty($extras->linkedin)){
-			$linkedin.= $extras->linkedin;
+		if(!empty($extras->user_title)){
+			$title.= $extras->user_title;
 		}	
 
 		if(!empty($extras->salesForceId)){
 			$salesforce.= $extras->salesForceId;
 		}	
 
-		if(trim($name)==""){
-			if(!empty($data->first_name)){
-				$name.= $data->first_name;
-			} 
-
-			if(!empty($data->uf_first_name)) {
-				$name.= $data->uf_first_name;
-			}
-
-			if(!empty($data->uf_last_name)) {
-				$last_name = $data->uf_last_name;
-			}		
+		// users.data
+		if(trim($name)=="" && !empty($data->first_name)){
+			$name.= $data->first_name;
 		}
+		if(trim($name) == '' && !empty($data->uf_first_name)) {
+			$name.= $data->uf_first_name;
+		}
+		if(trim($last_name) && !empty($data->uf_last_name)) {
+			$last_name = $data->uf_last_name;
+		} 
 
 		if(trim($work) == "" AND !empty($data->uf_company_name) AND trim($data->uf_company_name) != ""){
 			$work.= $data->uf_company_name;
@@ -123,6 +124,7 @@
 
 		$name = trim(addslashes($name));
 		$last_name = trim(addslashes($last_name));
+		$phone = trim(addslashes($phone));
 		$title = trim(addslashes($title));
 		$zip = trim(addslashes($zip));
 		$work = trim(addslashes($work));
@@ -136,28 +138,30 @@
 			$name = trim(addslashes($row->name));
 		}
 		
-		if($row->role=="employer"){
+		if($row->role=="master_employer"){
 			$company_id = 0;
 			$logo = "";
 
+			// 
 			$company_result = $mysql[$db_destination]->query("SELECT id FROM companies WHERE LOWER(name) = '" . strtolower($work) . "' LIMIT 1") OR die($mysql[$db_destination]->error);
 
-			if( ! $company_result->num_rows){
+			// force to create
+			if(1 || ! $company_result->num_rows){
 
-				$logo_result = $mysql["bevforce_jobs"]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1") OR die($mysql["bevforce_jobs"]->error);
+				$logo_result = $mysql[$db_source]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1") OR die($mysql[$db_source]->error);
 
 				if($logo_result->num_rows){
 					$logo = $logo_result->fetch_object()->filepath;
 				}
 
-				$sql = "INSERT INTO companies SET name = '{$work}', user_id = '{$row->uid}', logo = '{$logo}'";
+				$sql = "INSERT INTO companies SET name = '{$work}', user_id = '{$row->uid}', logo = '{$logo}', linkedin_url = '{$linkedin}'";
 				$company_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);
 			}
 		}
 
 		$sql = "INSERT INTO users 
-			(id,role, name, last_name, address, zip_code, work, title, email, biography, linkedin_id, salesforce_id, profile_picture, password, status, created_at, updated_at) VALUES
-			($row->uid, '{$role}', '{$name}', '{$last_name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$linkedin}','{$salesforce}','{$row->picture}', '{$row->pass}', 'migration', NOW(), NOW())
+			(id,role, name, last_name, address, zip_code, work, title, email, biography, salesforce_id, profile_picture, password, status, created_at, updated_at,verified) VALUES
+			($row->uid, '{$role}', '{$name}', '{$last_name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$salesforce}','{$row->picture}', '{$row->pass}', 'active', NOW(), NOW(),1)
 		";
 
 		$insert_row = $mysql[$db_destination]->query($sql) OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
