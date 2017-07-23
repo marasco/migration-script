@@ -145,12 +145,12 @@
 			$logo = "";
 
 			// 
-			$company_result = $mysql[$db_destination]->query("SELECT id FROM companies WHERE LOWER(name) = '" . strtolower($work) . "' LIMIT 1") OR die($mysql[$db_destination]->error);
+			//$company_result = $mysql[$db_destination]->query("SELECT id FROM companies WHERE LOWER(name) = '" . strtolower($work) . "' LIMIT 1") OR die($mysql[$db_destination]->error);
 
 			// force to create
-			if(1 || ! $company_result->num_rows){
-
-				$logo_result = $mysql[$db_source]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1") OR die($mysql[$db_source]->error);
+			//if(1 || ! $company_result->num_rows){
+				$logo_result = $mysql[$db_source]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1");
+				// OR die($mysql[$db_source]->error);
 
 				if($logo_result->num_rows){
 					$logo = $logo_result->fetch_object()->filepath;
@@ -159,8 +159,9 @@
 				}
 
 				$sql = "INSERT INTO companies SET name = '{$work}', user_id = '{$row->uid}', logo = '{$logo}', linkedin_url = '{$linkedin}'";
-				$company_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);
-			}
+				$company_id = $mysql[$db_destination]->query($sql);
+				// OR die($mysql[$db_destination]->error);
+			//}
 		}
 
 		$sql = "INSERT INTO users 
