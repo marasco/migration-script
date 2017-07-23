@@ -40,7 +40,20 @@
 		$state_id = 0;
 		$salary_range = "";
 		$status = $row->field_job_status_value;
-		
+
+		switch ($row->field_job_status_value){
+			case 'published':
+				$status = 'active';
+				if ($row->field_job_expiration_value == 'closed'){
+					$status = 'closed';
+				}elseif (strtotime($row->field_job_expiration_value) < time()){
+					$status = 'expired';
+				}
+			break;
+			default:
+				$status = 'closed';
+				break;
+		}
 		$city = trim(addslashes($row->field_city_value));
 		$brand = trim(addslashes($row->field_brand_name_value));
 		$description = trim(addslashes($row->job_description));

@@ -118,7 +118,7 @@
         }
 
         if($lineWidth <= 0){
-            $lineWidth =  exec("tput cols");
+            $lineWidth =  @exec("tput cols");
         }
 
         static $start_time;

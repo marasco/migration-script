@@ -1,5 +1,7 @@
 <?php 
 
+	$startIn = 26104;
+
 	require_once 'config.db.php';
  
 	$truncates = (object)[
@@ -8,7 +10,7 @@
 
 	include_once "includes/functions.php";
 	include_once "includes/routine.php";
-	
+	$inserted=0; 
 	if (empty($brand))
 		$brand = 'bevforce';
 
@@ -29,7 +31,10 @@
 	$total = $users->num_rows;
 
 	while($row = $users->fetch_object()) {
-
+		if (isset($startIn) && $inserted<$startIn){
+			$inserted++;
+			continue;
+		}
 		if ($row->role != 'master employer' && $row->role != 'job_seeker'){
 			// get off
 			continue;
@@ -179,11 +184,12 @@
 		try { 
 			$insert_row = $mysql[$db_destination]->query($sql); // OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
 		} catch (\Exception $e){
+			$failed++;
 			$errors[] = $sql . ' => ' . $e->getMessage();
 		}
-		if($insert_row){
-			$inserted++;
-		}
+
+		// pass, not inserted really
+		$inserted++;
 
 		show_progress($inserted, $total);
 	}
