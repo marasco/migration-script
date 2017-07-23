@@ -27,7 +27,7 @@
 
 	while($row = $users->fetch_object()) {
 
-		if ($row->role != 'master_employer' && $row->role != 'job_seeker'){
+		if ($row->role != 'master employer' && $row->role != 'job_seeker'){
 			// get off
 			continue;
 		}
@@ -61,7 +61,7 @@
 		// embeded users object
 		$data = (object) @unserialize($row->data);
 		
-		if ($row->role == 'master_employer'){
+		if ($row->role == 'master employer'){
 			$role = 'client';
 		}
 
@@ -139,8 +139,7 @@
 		if(trim($name)=="" AND !empty($row->name)){
 			$name = trim(addslashes($row->name));
 		}
-		
-		if($row->role=="master_employer"){
+		if($row->role=="master employer"){
 			$company_id = 0;
 			$logo = "";
 
