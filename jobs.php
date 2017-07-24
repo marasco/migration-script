@@ -263,9 +263,9 @@
 		notifications_preferences_id = 6
 		";
 		try { 
-			$insert_row_id = $mysql[$db_destination]->query($sql) or $errors[] = $mysql[$db_destination]->error;
+			$insert_row_id = $mysql[$db_destination]->query($sql) or $errors[] = "\r\n".$mysql[$db_destination]->error;
 		} catch(Exception $e){
-			$errors[] = $e->getMessage();
+			$errors[] = "\r\n".$e->getMessage();
 		}
 		$inserted++;
 
