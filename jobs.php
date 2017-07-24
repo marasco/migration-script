@@ -221,7 +221,7 @@
 		reports_to = '{$reports_to}',
 		of_reports = '{$of_reports}',
 		salary_range = '{$salary_range}',
-		description = "{$description}\n{$requirements}",
+		description = '{$description}\n{$requirements}',
 		status = '{$status}',
 		redirect_to_company_job_board_post = '{$row->field_external_job_board_value}',
 		expired_date = '{$expired}',
