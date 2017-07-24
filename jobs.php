@@ -187,7 +187,7 @@
 				$company_id = $company_result->fetch_object()->id;
 
 			} else{
-				$errors[] = 'Job without Company, skip '.$row->nid;
+				$errors[] = 'Job without Company, skip '.$row->nid. ' with user '.$row->uid;
 				print("\r\nJob without Company, skip ".$row->nid);
 				$company_id = mt_rand(1,2);
 				//continue;
