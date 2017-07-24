@@ -114,7 +114,7 @@
             foreach($errors as $e){
                 $status.= colorize("\nError: " . $e,"FAILURE");
             }
-            die($status);
+            print($status);
         }
 
         if($lineWidth <= 0){

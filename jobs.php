@@ -5,9 +5,12 @@
 	$truncates = (object)[
 		$db_destination => ['companies','post_jobs','employment_types','job_employment_types','areas','job_areas','manufacturing_types','beverage_types']
 	];	
-
+	if (empty($brand)){
+		$brand = 'bevforce';
+	}
 	include_once "includes/functions.php";
 	include "includes/routine.php";
+	global $errors;
 	if (empty($stringLimit)){
 		$stringLimit = "";
 		$stringLimit = startscript($stringLimit);
@@ -17,7 +20,7 @@
 		node_revisions.title as job_title, node_revisions.body as job_description
 		FROM node
 		LEFT JOIN node_revisions ON node_revisions.nid = node.nid  
-		LEFT JOIN content_type_job ON node.nid = content_type_job.nid 
+		INNER JOIN content_type_job ON node.nid = content_type_job.nid 
 		WHERE node.type = 'job' 
 		GROUP BY content_type_job.nid 
 		 $stringLimit") OR die($mysql[$db_source]->error);
@@ -55,15 +58,17 @@
 				break;
 		}
 		$city = trim(addslashes($row->field_city_value));
-		$brand = trim(addslashes($row->field_brand_name_value));
 		$description = trim(addslashes($row->job_description));
 		$requirements = trim(addslashes($row->field_job_requirements_value));
 		$reports_to = trim(addslashes($row->field_job_reports_to_value));
-		$of_reports = trim(addslashes($row->field_job_direct_reports_value));
+		$of_reports = is_numeric($row->field_job_direct_reports_value)?(int)$row->field_job_direct_reports_value:'NULL';
 		$created = date('Y-m-d H:i:s', $row->created);
 		$changed = date('Y-m-d H:i:s', $row->changed);
-		$expired = date('Y-m-d H:i:s', strtotime($row->field_job_expiration_value));
 
+		$expired = date('Y-m-d H:i:s', strtotime($row->field_job_expiration_value));
+		if (intval(substr($expired,0,4))<1990 || $expired < $created){
+			$expired = date('Y-m-d H:i:s', strtotime('+30 day', $row->created));
+		}
 		$terms = $mysql[$db_source]->query("SELECT term_node.*, term_data.name as value,term_data.vid as node_type
 		FROM term_node 
 		LEFT JOIN term_data ON term_data.tid = term_node.tid 
@@ -175,11 +180,21 @@
 		 
 		if(!empty($row->uid)) {
 			
-			$company_result = $mysql[$db_destination]->query("SELECT id FROM companies WHERE user_id = '{$row->id}' LIMIT 1");
+			$company_result = $mysql[$db_destination]->query("SELECT id FROM companies WHERE user_id = '{$row->uid}' LIMIT 1");
 
 			if($company_result->num_rows){
 				$company_id = $company_result->fetch_object()->id;
-			}  
+
+			} else{
+				$errors[] = 'Job without Company, skip '.$row->nid;
+				print("\r\nJob without Company, skip ".$row->nid);
+				$company_id = mt_rand(1,2);
+				//continue;
+			}
+		}else{
+			$errors[] = 'Job with Empty User Id, skip '.$row->nid;
+			print("\r\nJob with Empty User Id, skip ".$row->nid);
+			continue;
 		}
 
 		if(!empty($row->field_job_base_pay_value)){
@@ -187,6 +202,10 @@
 		}
 		$anonymous = (int)$row->field_confidential_value;
 		// jobs
+		$desc = "{$description}<br />";
+		if (!empty($requirements))
+			$desc = "{$description}<br /><h3>Requirements:</h3><p>{$requirements}</p>";
+		//description = '".strip_tags($description.'\n'.$requirements)."',
 		$sql = "INSERT INTO post_jobs SET 
 		id = '{$row->nid}',
 		user_id = '{$row->uid}',
@@ -196,28 +215,29 @@
 		title = '{$title}',
 		city = '{$city}',
 		brand = '{$brand}',
-		state_id = '{$state_id}',
+		state_id = {$state_id},
 		zip_code = '{$row->field_zip_value}',
 		reports_to = '{$reports_to}',
-		of_reports = '{$of_reports}',
+		of_reports = {$of_reports},
 		salary_range = '{$salary_range}',
-		description = '{$description}\n{$requirements}',
+		
+		description = '$desc',
 		status = '{$status}',
 		redirect_to_company_job_board_post = '{$row->field_external_job_board_value}',
 		expired_date = '{$expired}',
+		closed_at = '{$expired}',
+		frequency = 'weekly',
 		created_at = '{$created}',
 		updated_at = '{$changed}',
-		post_anonymously = {$anonymous}
+		post_anonymously = {$anonymous},
+		notifications_preferences_id = 6
 		";
 		try { 
-		$insert_row_id = $mysql[$db_destination]->query($sql);
+			$insert_row_id = $mysql[$db_destination]->query($sql) or $errors[] = $mysql[$db_destination]->error;
 		} catch(Exception $e){
-			$errors[] = $e->getMessage().' / '.$sql . ' => ' . $mysql[$db_destination]->error;
-
+			$errors[] = $e->getMessage();
 		}
-		//if($insert_row_id){
-			$inserted++;
-		//}
+		$inserted++;
 
 		show_progress($inserted, $total);
 	}
