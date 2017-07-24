@@ -1,6 +1,6 @@
 <?php 
 
-	$startIn = 26104;
+	$startIn = 0;
 
 	require_once 'config.db.php';
  

@@ -1,7 +1,7 @@
 <?php 
 	
 	require_once 'config.db.php';
-	$startIn = 110896;
+	$startIn = 0;
 
 	$truncates = (object)[
 		$db_destination => ['user_resumes', 'user_cover_letter']
@@ -29,8 +29,9 @@
 	$total = $users->num_rows;
 
 	while($row = $users->fetch_object()) {
-		if (isset($startIn) && $startIn<$inserted){
+		if (!empty($startIn) && $startIn<$inserted){
 			$inserted++;
+			continue;
 		}
 		$table = "";
 
