@@ -196,6 +196,14 @@
 					$path_parts = pathinfo($logo);
 					$logo = $path_parts['basename'];
 				}
+
+				$company = 'Confidential';
+				$user_result = $mysql[$db_destination]->query("SELECT work FROM users WHERE id = '{$row->uid}' LIMIT 1");
+				if (empty($user_result->num_rows)){
+					$errors[] = 'Company Name not found for user '.$row->uid;
+				}else{
+					$company = $user_result->fetch_object()->work;
+				}
 				$sql = "INSERT INTO companies SET name = '{$company}', user_id = '".$row->uid."', logo = '{$logo}'";
 				$company_id_new = $mysql[$db_destination]->query($sql) OR $errors[] = $mysql[$db_destination]->error;
 				if (empty($company_id_new)){
