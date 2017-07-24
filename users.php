@@ -1,6 +1,7 @@
 <?php 
 
 	$startIn = 0;
+	$startId = 0;
 
 	require_once 'config.db.php';
  
@@ -32,6 +33,10 @@
 
 	while($row = $users->fetch_object()) {
 		if (isset($startIn) && $inserted<$startIn){
+			$inserted++;
+			continue;
+		}
+		if (!empty($startId) && $startId<$row->uid){
 			$inserted++;
 			continue;
 		}

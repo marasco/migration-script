@@ -2,6 +2,7 @@
 	
 	require_once 'config.db.php';
 	$startIn = 0;
+	$startId = 0;
 
 	$truncates = (object)[
 		$db_destination => ['user_resumes', 'user_cover_letter']
@@ -30,6 +31,10 @@
 
 	while($row = $users->fetch_object()) {
 		if (!empty($startIn) && $startIn<$inserted){
+			$inserted++;
+			continue;
+		}
+		if (!empty($startId) && $startId<$row->fid){
 			$inserted++;
 			continue;
 		}
