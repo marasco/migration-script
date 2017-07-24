@@ -171,35 +171,15 @@
 			}
 		}
 
-		//companies
-
-		if(strlen($row->field_brand_name_value)){
-			$company = $row->field_brand_name_value;
-		} else if(strlen($row->field_name_value)){
-			$company = $row->field_name_value;
-		}
-
-		if(strlen($company)){
+		// find company
+		 
+		if(!empty($row->uid)) {
 			
-			$company = trim(addslashes($company));
-			$company_result = $mysql[$db_destination]->query("SELECT id FROM companies WHERE name = '{$company}' LIMIT 1") OR die($mysql[$db_destination]->error);
+			$company_result = $mysql[$db_destination]->query("SELECT id FROM companies WHERE user_id = '{$row->id}' LIMIT 1");
 
 			if($company_result->num_rows){
 				$company_id = $company_result->fetch_object()->id;
-			} else {
-				
-				$logo = "";
-				$logo_result = $mysql[$db_source]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1") OR die($mysql[$db_source]->error);
-
-				if($logo_result->num_rows){
-					$logo = $logo_result->fetch_object()->filepath;
-				}
-				$path_parts = pathinfo($logo);
-					$logo = $path_parts['basename'];
-
-				$sql = "INSERT INTO companies SET name = '{$company}', logo = '{$logo}'";
-				$company_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);
-			}
+			}  
 		}
 
 		if(!empty($row->field_job_base_pay_value)){
