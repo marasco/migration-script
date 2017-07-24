@@ -16,6 +16,7 @@
 		$stringLimit = startscript($stringLimit);
 	}
 	// Main list
+	$jobs = $mysql[$db_source]->query("SET sql_mode = ''"); 
 	$jobs = $mysql[$db_source]->query("SELECT node.*, content_type_job.*, 
 		node_revisions.title as job_title, node_revisions.body as job_description
 		FROM node
