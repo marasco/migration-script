@@ -190,14 +190,9 @@
 				$errors[] = 'Job without Company, skip '.$row->nid. ' with user '.$row->uid;
 				
 				$logo = "";
-				$logo_result = $mysql[$db_source]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1");
-				if($logo_result->num_rows){
-					$logo = $logo_result->fetch_object()->filepath;
-					$path_parts = pathinfo($logo);
-					$logo = $path_parts['basename'];
-				}
+				 
 				$userId = $row->uid;
-				$company = 'Confidential';
+				$companyName = 'Confidential';
 				$user_result = $mysql[$db_destination]->query("SELECT id, work FROM users WHERE id = '{$row->uid}' LIMIT 1");
 				if (empty($user_result->num_rows)){
 					$user_result = $mysql[$db_destination]->query("SELECT * FROM users WHERE work = 'Confidential' LIMIT 1");
@@ -220,8 +215,8 @@
 					$companyName = $user_result->fetch_object()->work;
 				}
 				$sql = "INSERT INTO companies SET name = '{$companyName}', user_id = '".$userId."', logo = '{$logo}'";
-				$company_id_new = $mysql[$db_destination]->query($sql) OR $errors[] = $mysql[$db_destination]->error;
-				if (empty($company_id_new)){
+				$company_id = $mysql[$db_destination]->query($sql) OR $errors[] = $mysql[$db_destination]->error;
+				if (empty($company_id)){
 					$errors[] = 'Company creation failed, skip '.$row->nid;
 
 					continue;
