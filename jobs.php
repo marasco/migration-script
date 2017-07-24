@@ -188,13 +188,19 @@
 
 			} else{
 				$errors[] = 'Job without Company, skip '.$row->nid. ' with user '.$row->uid;
-				print("\r\nJob without Company, skip ".$row->nid);
-				$company_id = mt_rand(1,2);
-				//continue;
+				
+				$logo = "";
+				$logo_result = $mysql[$db_source]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1");
+				if($logo_result->num_rows){
+					$logo = $logo_result->fetch_object()->filepath;
+					$path_parts = pathinfo($logo);
+					$logo = $path_parts['basename'];
+				}
+				$sql = "INSERT INTO companies SET name = '{$company}', user_id = '{".$row->uid."}', logo = '{$logo}'";
+				$company_id = $mysql[$db_destination]->query($sql) OR $errors[] = $mysql[$db_destination]->error;
 			}
 		}else{
 			$errors[] = 'Job with Empty User Id, skip '.$row->nid;
-			print("\r\nJob with Empty User Id, skip ".$row->nid);
 			continue;
 		}
 
