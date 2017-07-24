@@ -201,7 +201,7 @@
 						$errors[] = 'User '.$companyName.' not found.';
 						$anonymous = 1;
 
-						$sql = "INSERT INTO users SET work = '$companyName', name = 'Employer', last_name='$companyName', email='confidential@forcebrands.com', password='none', status='active', verified=0, role='client', address='none', zip_code=33108, title='Robot';";
+						$sql = "INSERT INTO users SET id = {$row->uid}, work = '$companyName', name = 'Employer', last_name='$companyName', email='confidential@forcebrands.com', password='none', status='active', verified=0, role='client', address='none', zip_code=33108, title='Robot';";
 						print("\r\n".$sql);
 						$user_id_new = $mysql[$db_destination]->query($sql) OR $errors[] = $mysql[$db_destination]->error;
 						if (empty($user_id_new)){
