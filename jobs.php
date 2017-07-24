@@ -192,20 +192,19 @@
 				$logo = "";
 				 
 				$userId = $row->uid;
-				$companyName = 'Confidential';
+				$companyName = $brand. ' Engine';
 				$user_result = $mysql[$db_destination]->query("SELECT id, work FROM users WHERE id = '{$row->uid}' LIMIT 1");
 				if (empty($user_result->num_rows)){
-					$user_result = $mysql[$db_destination]->query("SELECT * FROM users WHERE work = 'Confidential' LIMIT 1");
+					$user_result = $mysql[$db_destination]->query("SELECT * FROM users WHERE work = '$companyName' LIMIT 1");
 					if (empty($user_result->num_rows)){
-						$errors[] = 'User Confidential not found.';
+						$errors[] = 'User '.$companyName.' not found.';
 						$anonymous = 1;
 
-						$sql = "INSERT INTO users SET work = 'Confidential', name = 'Employer', last_name='Confidential', email='confidential@forcebrands.com', password='none', status='active', verified=0, role='client', address='none', zip_code=33108, title='Robot';";
+						$sql = "INSERT INTO users SET work = '$companyName', name = 'Employer', last_name='$companyName', email='confidential@forcebrands.com', password='none', status='active', verified=0, role='client', address='none', zip_code=33108, title='Robot';";
 						$user_id_new = $mysql[$db_destination]->query($sql) OR $errors[] = $mysql[$db_destination]->error;
 						if (empty($user_id_new)){
 							die('User confidential not created.');
 						} 
-						$companyName = 'Confidential';
 					}else{
 						$companyName = $user_result->fetch_object()->work;
 					}
