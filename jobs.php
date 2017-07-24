@@ -102,7 +102,7 @@
 		if(!empty($row->field_state_value)){
 			$ucfirst = ucfirst($row->field_state_value);
 			$upper = strtoupper($row->field_state_value);
-			$job_state = $mysql[$db_destination]->query("SELECT id FROM job_states WHERE code = '$upper' OR name = '$ucfirst'");// OR die($mysql[$db_destination]->error);
+			$job_state = $mysql[$db_destination]->query("SELECT id FROM job_states WHERE code = '$upper' OR name = '$ucfirst'") OR die($mysql[$db_destination]->error);
 
 			if($job_state->num_rows){
 				$state_id = $job_state->fetch_object()->id;
@@ -189,28 +189,30 @@
 		if(strlen($company)){
 			
 			$company = trim(addslashes($company));
-			$company_result = $mysql[$db_destination]->query("SELECT id FROM companies WHERE name = '{$company}' LIMIT 1");// OR die($mysql[$db_destination]->error);
+			$company_result = $mysql[$db_destination]->query("SELECT id FROM companies WHERE name = '{$company}' LIMIT 1") OR die($mysql[$db_destination]->error);
 
 			if($company_result->num_rows){
 				$company_id = $company_result->fetch_object()->id;
 			} else {
 				
 				$logo = "";
-				$logo_result = $mysql[$db_source]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1");// OR die($mysql[$db_source]->error);
+				$logo_result = $mysql[$db_source]->query("SELECT filepath FROM bf_files WHERE uid = '{$row->uid}' AND type = 'other' LIMIT 1") OR die($mysql[$db_source]->error);
 
 				if($logo_result->num_rows){
 					$logo = $logo_result->fetch_object()->filepath;
 				}
+				$path_parts = pathinfo($logo);
+					$logo = $path_parts['basename'];
 
 				$sql = "INSERT INTO companies SET name = '{$company}', logo = '{$logo}'";
-				$company_id = $mysql[$db_destination]->query($sql);// OR die($mysql[$db_destination]->error);
+				$company_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);
 			}
 		}
 
 		if(!empty($row->field_job_base_pay_value)){
 			$salary_range = trim(addslashes($row->field_job_base_pay_value));
 		}
-
+		$anonymous = (int)$row->field_confidential_value;
 		// jobs
 		$sql = "INSERT INTO post_jobs SET 
 		id = '{$row->nid}',
@@ -231,7 +233,8 @@
 		redirect_to_company_job_board_post = '{$row->field_external_job_board_value}',
 		expired_date = '{$expired}',
 		created_at = '{$created}',
-		updated_at = '{$changed}'
+		updated_at = '{$changed}',
+		post_anonymously = {$anonymous}
 		";
 
 		$insert_row_id = $mysql[$db_destination]->query($sql);
