@@ -68,7 +68,7 @@
 		FROM term_node 
 		LEFT JOIN term_data ON term_data.tid = term_node.tid 
 		WHERE term_node.nid = '{$row->nid}'
-		"); // OR die($mysql[$db_source]->error);
+		") OR die($mysql[$db_source]->error);
 
 		while($term = $terms->fetch_object()) {	
 			switch($term->node_type){
@@ -110,7 +110,7 @@
 		}
 
 		// manufacturing_type
-
+/*
 		if(strlen($area)){
 			$area = trim(addslashes($area));
 			$area_result = $mysql[$db_destination]->query("SELECT id FROM areas WHERE name = '{$area}' LIMIT 1") OR die($mysql[$db_destination]->error);
@@ -126,55 +126,48 @@
 			$sql = "INSERT INTO job_areas SET job_id = '{$row->nid}', area_id = '{$area_id}'";
 			$area_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);
 		}
-
+*/
 		// employment type
 		if(strlen($row->field_type_value)){
 			// employment type
 			$employment_type = str_replace('-',' ',trim(addslashes($row->field_type_value)));
-			$employment_type_result = $mysql[$db_destination]->query("SELECT id FROM employment_types WHERE name = '{$employment_type}' LIMIT 1");
-			// OR die($mysql[$db_destination]->error);
+			$employment_type_result = $mysql[$db_destination]->query("SELECT id FROM employment_types WHERE name = '{$employment_type}' LIMIT 1") OR die($mysql[$db_destination]->error);
 
 			if($employment_type_result->num_rows){
 				$employment_type_id = $employment_type_result->fetch_object()->id;
 			} else {
 				$sql = "INSERT INTO employment_types SET name = '{$employment_type}'";
-				$employment_type_id = $mysql[$db_destination]->query($sql);
-				// OR die($mysql[$db_destination]->error);	
+				$employment_type_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);	
 			}
 
 			// save relation
 			$sql = "INSERT INTO job_employment_types SET job_id = '{$row->nid}', employment_type_id = '{$employment_type_id}'";
-			$area_id = $mysql[$db_destination]->query($sql);
-			// OR die($mysql[$db_destination]->error);			
+			$job_employment_type_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);			
 		}
 
 		// beverage type
 		if(strlen($beverage_type)){
 			$beverage_type = trim(addslashes($beverage_type));
-			$beverage_result = $mysql[$db_destination]->query("SELECT id FROM beverage_types WHERE name = '{$beverage_type}' LIMIT 1");
-			// OR die($mysql[$db_destination]->error);
+			$beverage_result = $mysql[$db_destination]->query("SELECT id FROM beverage_types WHERE name = '{$beverage_type}' LIMIT 1") OR die($mysql[$db_destination]->error);
 
 			if($beverage_result->num_rows){
 				$beverage_type_id = $beverage_result->fetch_object()->id;
 			} else {
 				$sql = "INSERT INTO beverage_types SET name = '{$beverage_type}'";
-				$beverage_type_id = $mysql[$db_destination]->query($sql);
-				// OR die($mysql[$db_destination]->error);				
+				$beverage_type_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);				
 			}
 		}
 
 		// industry type
 		if(strlen($manufacturing_type)){
 			$manufacturing_type = trim(addslashes($manufacturing_type));
-			$manufacturing_type_result = $mysql[$db_destination]->query("SELECT id FROM manufacturing_types WHERE name = '{$manufacturing_type}' LIMIT 1");
-			// OR die($mysql[$db_destination]->error);
+			$manufacturing_type_result = $mysql[$db_destination]->query("SELECT id FROM manufacturing_types WHERE name = '{$manufacturing_type}' LIMIT 1") OR die($mysql[$db_destination]->error);
 
 			if($manufacturing_type_result->num_rows){
 				$manufacturing_type_id = $manufacturing_type_result->fetch_object()->id;
 			} else {
 				$sql = "INSERT INTO manufacturing_types SET name = '{$manufacturing_type}'";
-				$manufacturing_type_id = $mysql[$db_destination]->query($sql);
-				// OR die($mysql[$db_destination]->error);				
+				$manufacturing_type_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);				
 			}
 		}
 
@@ -236,13 +229,15 @@
 		updated_at = '{$changed}',
 		post_anonymously = {$anonymous}
 		";
-
+		try { 
 		$insert_row_id = $mysql[$db_destination]->query($sql);
-		//$errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
+		} catch(Exception $e){
+			$errors[] = $e->getMessage().' / '.$sql . ' => ' . $mysql[$db_destination]->error;
 
-		if($insert_row_id){
-			$inserted++;
 		}
+		//if($insert_row_id){
+			$inserted++;
+		//}
 
 		show_progress($inserted, $total);
 	}
