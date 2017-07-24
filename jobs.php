@@ -246,7 +246,7 @@
 		city = '{$city}',
 		brand = '{$brand}',
 		state_id = {$state_id},
-		zip_code = ".int($row->field_zip_value).",
+		zip_code = ".intval($row->field_zip_value).",
 		reports_to = '{$reports_to}',
 		of_reports = {$of_reports},
 		salary_range = '{$salary_range}',
