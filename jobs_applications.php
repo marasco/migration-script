@@ -1,24 +1,22 @@
 <?php 
 	
-	$connections = (object)[
-		"bevforce_jobs" => ['localhost','root','eNWM@[v5FC^y'],
-		"bevforce_dest" => ['localhost','root','eNWM@[v5FC^y']
-	];
+ 	require_once 'config.db.php';
 
 	$truncates = (object)[
-		"bevforce_dest" => ['job_applications']
+		$db_destination => ['job_applications']
 	];
 
 	include_once "includes/functions.php";
 	include "includes/routine.php";
 
 	// Users and roles
-	$job_applications = $mysql["bevforce_jobs"]->query("
+	$job_applications = $mysql[$db_source]->query("SET sql_mode = ''"); 
+	$job_applications = $mysql[$db_source]->query("
 	SELECT bf_job_applications.*, node.title 
 	FROM bf_job_applications
 	LEFT JOIN node ON node.nid = bf_job_applications.nid 
 	GROUP BY bf_job_applications.aid 
-	") OR die($mysql["bevforce_jobs"]->error);
+	") OR die($mysql[$db_source]->error);
 
 	$total = $job_applications->num_rows;
 
@@ -37,11 +35,16 @@
 		created_at = NOW(),
 		updated_at = NOW()";
 
-		$insert_row_id = $mysql["bevforce_dest"]->query($sql) OR $errors[] = $sql . ' => ' . $mysql["bevforce_dest"]->error;
-
-		if($insert_row_id){
-			$inserted++;
+		try { 
+			$insert_row_id = $mysql[$db_destination]->query($sql) OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
+		} catch(Exception $e){
+			$errors[] = "\r\n".$e->getMessage();
 		}
+
+
+		//if($insert_row_id){
+			$inserted++;
+		//}
 
 		show_progress($inserted, $total);
 	}
