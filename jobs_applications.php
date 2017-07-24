@@ -8,14 +8,18 @@
 
 	include_once "includes/functions.php";
 	include "includes/routine.php";
-
+	global $errors;
+	if (empty($stringLimit)){
+		$stringLimit = "";
+		$stringLimit = startscript($stringLimit);
+	}
 	// Users and roles
 	$job_applications = $mysql[$db_source]->query("SET sql_mode = ''"); 
 	$job_applications = $mysql[$db_source]->query("
 	SELECT bf_job_applications.*, node.title 
 	FROM bf_job_applications
 	LEFT JOIN node ON node.nid = bf_job_applications.nid 
-	GROUP BY bf_job_applications.aid 
+	GROUP BY bf_job_applications.aid $stringLimit
 	") OR die($mysql[$db_source]->error);
 
 	$total = $job_applications->num_rows;
@@ -23,7 +27,10 @@
 	while($row = $job_applications->fetch_object()) {
 
 		$message = addslashes($row->additional_info);
-
+		$status = 'reject';
+		if ($row->status=='published'){
+			$status = 'saved';
+		}
 		// jobs
 		$sql = "INSERT INTO job_applications SET 
 		user_id = '{$row->uid}',
@@ -31,7 +38,7 @@
 		resume_id = '{$row->resume_fid}',
 		cover_letter_id = '{$row->cover_letter_fid}',
 		message = '{$message}',
-		status = '{$row->status}',
+		status = '{$status}',
 		created_at = NOW(),
 		updated_at = NOW()";
 
