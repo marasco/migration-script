@@ -196,8 +196,13 @@
 					$path_parts = pathinfo($logo);
 					$logo = $path_parts['basename'];
 				}
-				$sql = "INSERT INTO companies SET name = '{$company}', user_id = '{".$row->uid."}', logo = '{$logo}'";
-				$company_id = $mysql[$db_destination]->query($sql) OR $errors[] = $mysql[$db_destination]->error;
+				$sql = "INSERT INTO companies SET name = '{$company}', user_id = '".$row->uid."', logo = '{$logo}'";
+				$company_id_new = $mysql[$db_destination]->query($sql) OR $errors[] = $mysql[$db_destination]->error;
+				if (empty($company_id_new)){
+					$errors[] = 'Company creation failed, skip '.$row->nid;
+
+					continue;
+				}
 			}
 		}else{
 			$errors[] = 'Job with Empty User Id, skip '.$row->nid;
