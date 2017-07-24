@@ -178,7 +178,7 @@
 		}
 
 		// find company
-		 
+		$anonymous = (int)$row->field_confidential_value;
 		if(!empty($row->uid)) {
 			
 			$company_result = $mysql[$db_destination]->query("SELECT id FROM companies WHERE user_id = '{$row->uid}' LIMIT 1");
@@ -196,15 +196,30 @@
 					$path_parts = pathinfo($logo);
 					$logo = $path_parts['basename'];
 				}
-
+				$userId = $row->uid;
 				$company = 'Confidential';
-				$user_result = $mysql[$db_destination]->query("SELECT work FROM users WHERE id = '{$row->uid}' LIMIT 1");
+				$user_result = $mysql[$db_destination]->query("SELECT id, work FROM users WHERE id = '{$row->uid}' LIMIT 1");
 				if (empty($user_result->num_rows)){
-					$errors[] = 'Company Name not found for user '.$row->uid;
+					$user_result = $mysql[$db_destination]->query("SELECT * FROM users WHERE work = 'Confidential' LIMIT 1");
+					if (empty($user_result->num_rows)){
+						$errors[] = 'User Confidential not found.';
+						$anonymous = 1;
+
+						$sql = "INSERT INTO users SET work = 'Confidential', name = 'Employer', last_name='Confidential', email='confidential@forcebrands.com', password='none', status='active', verified=0, role='client', address='none', zip_code=33108, title='Robot';";
+						$user_id_new = $mysql[$db_destination]->query($sql) OR $errors[] = $mysql[$db_destination]->error;
+						if (empty($user_id_new)){
+							die('User confidential not created.');
+						} 
+						$companyName = 'Confidential';
+					}else{
+						$companyName = $user_result->fetch_object()->work;
+					}
+
 				}else{
-					$company = $user_result->fetch_object()->work;
+					$userId = $user_result->fetch_object()->id;
+					$companyName = $user_result->fetch_object()->work;
 				}
-				$sql = "INSERT INTO companies SET name = '{$company}', user_id = '".$row->uid."', logo = '{$logo}'";
+				$sql = "INSERT INTO companies SET name = '{$companyName}', user_id = '".$userId."', logo = '{$logo}'";
 				$company_id_new = $mysql[$db_destination]->query($sql) OR $errors[] = $mysql[$db_destination]->error;
 				if (empty($company_id_new)){
 					$errors[] = 'Company creation failed, skip '.$row->nid;
@@ -220,7 +235,7 @@
 		if(!empty($row->field_job_base_pay_value)){
 			$salary_range = trim(addslashes($row->field_job_base_pay_value));
 		}
-		$anonymous = (int)$row->field_confidential_value;
+		
 		// jobs
 		$desc = "{$description}<br />";
 		if (!empty($requirements))
