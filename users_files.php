@@ -3,6 +3,7 @@
 	require_once 'config.db.php';
 	$startIn = 0;
 	$startId = 0;
+	$minIdQuery = '';
 
 	$truncates = (object)[
 		$db_destination => ['user_resumes', 'user_cover_letter']
@@ -17,11 +18,15 @@
 		$stringLimit = startscript($stringLimit);
 	}
 
+	if (!empty($startId)){
+		$minIdQuery = ' AND fid > '.$startId.' ';
+	}
 	// Users and roles
 	$users = $mysql[$db_source]->query("
 	SELECT *
 	FROM bf_files
 	WHERE type IN('cover-letter','resume') 
+	{$minIdQuery} 
 	GROUP BY fid {$stringLimit} 
 	") or die($mysql[$db_source]->error);
 
@@ -33,11 +38,7 @@
 		if (!empty($startIn) && $startIn<$inserted){
 			$inserted++;
 			continue;
-		}
-		if (!empty($startId) && $startId<$row->fid){
-			$inserted++;
-			continue;
-		}
+		} 
 		$table = "";
 
 		if($row->type == 'resume'){

@@ -2,7 +2,7 @@
 
 	$startIn = 0;
 	$startId = 0;
-
+	$minIdQuery = '';
 	require_once 'config.db.php';
  
 	$truncates = (object)[
@@ -19,12 +19,17 @@
 		$stringLimit = "";
 		$stringLimit = startscript($stringLimit);
 	}
+
+	if (!empty($startId)){
+		$minIdQuery = ' AND uid > '.$startId.' ';
+	}
 	// Users and roles
 	$users = $mysql[$db_source]->query("SET sql_mode = ''"); 
 	$users = $mysql[$db_source]->query("SELECT users.*, users_roles.rid, role.name AS role 
 		FROM users 
 		LEFT JOIN users_roles ON users_roles.uid = users.uid 
 		LEFT JOIN role ON role.rid = users_roles.rid 
+		{$minIdQuery} 
 		GROUP BY users.uid 
 		ORDER BY users.uid DESC
 		 {$stringLimit}
@@ -35,11 +40,7 @@
 		if (isset($startIn) && $inserted<$startIn){
 			$inserted++;
 			continue;
-		}
-		if (!empty($startId) && $startId<$row->uid){
-			$inserted++;
-			continue;
-		}
+		} 
 		if ($row->role != 'master employer' && $row->role != 'job_seeker'){
 			// get off
 			continue;
