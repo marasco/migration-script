@@ -1,7 +1,5 @@
 <?php 
     
-    //include_once "includes/progress.php";
-
     $commands = "t:r:i:n:c:w:s:e:l:";
     $options = getopt($commands);
 
@@ -20,33 +18,35 @@
 
     function startscript($default = ''){
         global $options, $stringLimit;
-        print_r($options);
         if (!empty($options['l'])) {
             $stringLimit = ' LIMIT ' .$options['l']. ' ';
             return $stringLimit;
         }
         return $default;
-
     }
+
     function endscript(){
-        global $errors, $options, $mysql, $inserted,$db_source,$db_destination,$db_host,$db_user,$db_pass,$brand, $connections;
+        global $errors,$options,$mysql,$inserted,$db_source,$db_destination,$db_host,$db_user,$db_pass,$brand,$connections;
 
         $inserted = 0;
         $errors = [];   
         $ext = ".php";
         $with = !empty($options['w'])?$options['w']:0;
-        $source = str_replace($ext,"",$_SERVER["SCRIPT_NAME"]);
-        $mods = explode(",",$with);
 
-        foreach($mods as $mod){
+        if($with){
+            $source = str_replace($ext,"",$_SERVER["SCRIPT_NAME"]);
+            $mods = explode(",",$with);
+            
+            foreach($mods as $mod){
 
-            $target = $source . "_" . $mod . $ext;
+                $target = $source . "_" . $mod . $ext;
 
-            if(file_exists($target)){
-                include_once $target;
-            } else {
-                print colorize("\nError: ". $target  . " does not exists","FAILURE");
-            }            
+                if(file_exists($target)){
+                    include_once $target;
+                } else {
+                    print colorize("\nError: ". $target  . " does not exist","FAILURE");
+                }            
+            }
         }
 
         close_connections();

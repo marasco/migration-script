@@ -6,7 +6,7 @@
 	require_once 'config.db.php';
  
 	$truncates = (object)[
-		$db_destination => ['users']
+		$db_destination => ['users','companies']
 	];
 
 	include_once "includes/functions.php";

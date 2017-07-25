@@ -34,7 +34,7 @@ php user.php -n John
 php user.php -e martinez113@aol.com
 ```
 
-##Modifiers glossary
+## Modifiers glossary
 ```
 -i id
 -n name
