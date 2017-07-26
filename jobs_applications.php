@@ -16,7 +16,7 @@
 	// Users and roles
 	$job_applications = $mysql[$db_source]->query("SET sql_mode = ''"); 
 	$job_applications = $mysql[$db_source]->query("
-	SELECT bf_job_applications.*, node.title 
+	SELECT bf_job_applications.*, node.title, node.created, node.changed  
 	FROM bf_job_applications
 	LEFT JOIN node ON node.nid = bf_job_applications.nid 
 	GROUP BY bf_job_applications.aid $stringLimit
@@ -26,6 +26,8 @@
 
 	while($row = $job_applications->fetch_object()) {
 
+		$created = date('Y-m-d H:i:s', $row->created);
+		$changed = date('Y-m-d H:i:s', $row->changed);
 		$message = addslashes($row->additional_info);
 		$status = 'reject';
 		if ($row->status=='published'){
@@ -39,8 +41,8 @@
 		cover_letter_id = '{$row->cover_letter_fid}',
 		message = '{$message}',
 		status = '{$status}',
-		created_at = NOW(),
-		updated_at = NOW()";
+		created_at = '{$created}',
+		updated_at = '{$changed}'";
 
 		try { 
 			$insert_row_id = $mysql[$db_destination]->query($sql) OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
