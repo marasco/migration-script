@@ -10,5 +10,6 @@ limitarg=""
 
 $phpcommand ./users.php $limitarg
 $phpcommand ./users_files.php
+$phpcommand ./users_credits.php
 
 echo "Finished";
