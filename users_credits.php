@@ -15,7 +15,8 @@
 		FROM companies
 		") or die($mysql[$db_source]->error);
 	$total = $users->num_rows;
-
+	$notfound=0;
+	$found=0;
 	while($row = $users->fetch_object()) {
 		// Users and roles
 		$row_data = $mysql[$db_source]->query("SELECT data 
@@ -23,8 +24,10 @@
 		WHERE uid = {$row->user_id}
 		")->fetch_object()->data; // or continue; //die($mysql[$db_source]->error);
 		if (empty($row_data)){
+			$notfound++;
 			continue;
 		}
+		$found++;
 		$data = (object) @unserialize($row_data);
 		$credits = 0;
 
@@ -47,6 +50,7 @@
 
 	$users->free();
 	
+	print("\r\n\r\nFound: ".$found." / Not Found: ".$notfound."\r\n\r\n");
 	show_status($errors, $inserted, $total);
 
 	endscript();
