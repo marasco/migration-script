@@ -15,7 +15,6 @@
 	if (empty($brand))
 		$brand = 'bevforce';
 
-die($brand);
 	if (empty($stringLimit)){
 		$stringLimit = "";
 		$stringLimit = startscript($stringLimit);
