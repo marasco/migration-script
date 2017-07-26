@@ -194,15 +194,15 @@
 				$userId = $row->uid;
 				$companyName = $brand. ' Engine';
 				$user_result = $mysql[$db_destination]->query("SELECT id, work FROM users WHERE id = '{$row->uid}' LIMIT 1");
-				if (empty($user_result->num_rows)){
-					print("\r\nNo user id found");
+				if (!$user_result->num_rows){
+					//print("\r\nNo user id found");
 					$user_result = $mysql[$db_destination]->query("SELECT * FROM users WHERE work = '$companyName' LIMIT 1");
 					if (empty($user_result->num_rows)){
 						$errors[] = 'User '.$companyName.' not found.';
 						$anonymous = 1;
 
 						$sql = "INSERT INTO users SET id = {$row->uid}, work = '$companyName', name = 'Employer', last_name='$companyName', email='confidential@forcebrands.com', password='none', status='active', verified=0, role='client', address='none', zip_code=33108, title='Robot';";
-						print("\r\n".$sql);
+						//print("\r\n".$sql);
 						$user_id_new = $mysql[$db_destination]->query($sql) OR $errors[] = $mysql[$db_destination]->error;
 						if (empty($user_id_new)){
 							die('User confidential not created.');
@@ -210,11 +210,12 @@
 					} 
 
 				}else{
-					$userId = $user_result->fetch_object()->id;
-					$companyName = $user_result->fetch_object()->work;
+					$entry = $user_result->fetch_object();
+					if($entry->id) $userId = $entry->id;
+					if($entry->work) $companyName = $entry->work;
 				}
 				$sql = "INSERT INTO companies SET name = '{$companyName}', user_id = '".$userId."', logo = '{$logo}'";
-				print("\r\n".$sql);
+				//print("\r\n".$sql);
 				$company_id = $mysql[$db_destination]->query($sql) OR $errors[] = $mysql[$db_destination]->error;
 				if (empty($company_id)){
 					$errors[] = 'Company creation failed, skip '.$row->nid;
@@ -250,7 +251,6 @@
 		reports_to = '{$reports_to}',
 		of_reports = {$of_reports},
 		salary_range = '{$salary_range}',
-		
 		description = '$desc',
 		status = '{$status}',
 		redirect_to_company_job_board_post = '{$row->field_external_job_board_value}',

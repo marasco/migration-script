@@ -51,8 +51,8 @@
 
 		if(strlen($table)){
 			$sql = "INSERT INTO {$table} 
-			(id, user_id,name_file, path_file, created_at, updated_at) VALUES
-			($row->fid, $row->uid, '{$row->filename}', '{$row->fileurl}', NOW(), NOW())
+			(user_id,name_file, path_file, created_at, updated_at) VALUES
+			($row->uid, '{$row->filename}', '{$row->fileurl}', NOW(), NOW())
 			";
 			
 			try { 

@@ -59,11 +59,12 @@
 		$linkedin = "";
 		$salesforce = "";
 		$role = 'candidate';
+		$created = date('Y-m-d H:i:s', $row->created);
 
 		// Users and roles
 		$extra = $mysql[$db_source]->query("SELECT `key`, `value`  
 			FROM bf_users_options 
-			WHERE `key` IN('about','address','company_name','first_name','last_name', 'salesForceId', 'zip', 'city', 'state', 'phone', 'user_title', 'employees', 'last_job_employer', 'last_job_title') 
+			WHERE `key` IN('about','address','company_name','first_name','last_name', 'salesForceId', 'linkedin', 'zip', 'city', 'state', 'phone', 'user_title', 'employees', 'last_job_employer', 'last_job_title') 
 			AND uid = {$row->uid}
 			") or die($mysql[$db_source]->error);
 
@@ -92,6 +93,10 @@
 			$phone = $extras['phone'];
 		}
 
+		if(!empty($extras['linkedin'])){
+			$linkedin = $extras['linkedin'];
+		}
+		
 		if(!empty($extras['address'])){
 			$address = $extras['address'];
 		}
@@ -185,7 +190,7 @@
 
 		$sql = "INSERT INTO users 
 			(id,role, name, last_name, address, zip_code, work, title, email, biography, salesforce_id, profile_picture, password, status, created_at, updated_at,verified, brand) VALUES
-			($row->uid, '{$role}', '{$name}', '{$last_name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$salesforce}','{$picture}', '{$row->pass}', 'active', NOW(), NOW(),1, '{$brand}')
+			($row->uid, '{$role}', '{$name}', '{$last_name}', '{$address}', '{$zip}', '{$work}', '{$title}', '{$email}','{$bio}','{$salesforce}','{$picture}', '{$row->pass}', 'active', '{$created}', '{$created}',1, '{$brand}')
 		";
 		try { 
 			$insert_row = $mysql[$db_destination]->query($sql); // OR $errors[] = $sql . ' => ' . $mysql[$db_destination]->error;
