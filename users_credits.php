@@ -17,13 +17,14 @@
 	$total = $users->num_rows;
 
 	while($row = $users->fetch_object()) {
-
 		// Users and roles
 		$row_data = $mysql[$db_source]->query("SELECT data 
 		FROM users  
 		WHERE uid = {$row->user_id}
-		")->fetch_object()->data or die($mysql[$db_source]->error);
-
+		")->fetch_object()->data; // or continue; //die($mysql[$db_source]->error);
+		if (empty($row_data)){
+			continue;
+		}
 		$data = (object) @unserialize($row_data);
 		$credits = 0;
 
