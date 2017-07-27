@@ -159,7 +159,7 @@
 			if($beverage_result->num_rows){
 				$beverage_type_id = $beverage_result->fetch_object()->id;
 			} else {
-				$sql = "INSERT INTO beverage_types SET name = '{$beverage_type}'";
+				$sql = "INSERT INTO beverage_types SET name = '{$beverage_type}', brand = '{$brand}'";
 				$beverage_type_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);				
 			}
 		}
