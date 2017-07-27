@@ -27,7 +27,7 @@
 	
 	$users = $mysql[$db_source]->query("UPDATE bf_job_applications SET nid = (nid + 999999) $testLimit") or die($mysql[$db_source]->error); 
 
-	$users = $mysql[$db_source]->query("UPDATE term_data SET nid = (nid + 999999) $testLimit") or die($mysql[$db_source]->error); 
+	$users = $mysql[$db_source]->query("UPDATE term_node SET nid = (nid + 999999) $testLimit") or die($mysql[$db_source]->error); 
 
 
 	//$users->free();
