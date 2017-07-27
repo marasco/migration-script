@@ -15,6 +15,7 @@
 		$stringLimit = "";
 		$stringLimit = startscript($stringLimit);
 	}
+	$failed = 0;
 	// Main list
 	$jobs = $mysql[$db_source]->query("SET sql_mode = ''"); 
 	$jobs = $mysql[$db_source]->query("SELECT node.*, content_type_job.*, 
@@ -224,6 +225,7 @@
 				}
 			}
 		}else{
+			$failed++;
 			$errors[] = 'Job with Empty User Id, skip '.$row->nid;
 			continue;
 		}
@@ -275,5 +277,5 @@
 	$jobs->free();
 
 	show_status($errors, $inserted, $total);
-
 	endscript();
+	print("\r\n\r\n\Failed: ".$failed."\r\n\r\n");
