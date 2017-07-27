@@ -15,6 +15,7 @@
 		$stringLimit = "";
 		$stringLimit = startscript($stringLimit);
 	}
+	$failed = 0;
 	// Main list
 	$jobs = $mysql[$db_source]->query("SET sql_mode = ''"); 
 	$jobs = $mysql[$db_source]->query("SELECT node.*, content_type_job.*, 
@@ -159,7 +160,7 @@
 			if($beverage_result->num_rows){
 				$beverage_type_id = $beverage_result->fetch_object()->id;
 			} else {
-				$sql = "INSERT INTO beverage_types SET name = '{$beverage_type}'";
+				$sql = "INSERT INTO beverage_types SET name = '{$beverage_type}', brand = '{$brand}'";
 				$beverage_type_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);				
 			}
 		}
@@ -224,6 +225,7 @@
 				}
 			}
 		}else{
+			$failed++;
 			$errors[] = 'Job with Empty User Id, skip '.$row->nid;
 			continue;
 		}
@@ -275,5 +277,5 @@
 	$jobs->free();
 
 	show_status($errors, $inserted, $total);
-
 	endscript();
+	print("\r\n\r\n\Failed: ".$failed."\r\n\r\n");
