@@ -66,7 +66,7 @@
 
 		if(!empty($industry)){
 			$industry_name = "";
-			$industry_name_result = $mysql[$db_source]->query("SELECT name FROM term_data WHERE tid = $industry LIMIT 1") or die($mysql[$db_source]->error);
+			$industry_name_result = $mysql[$db_source]->query("SELECT name FROM term_data WHERE tid = '{$industry}' LIMIT 1") or die($mysql[$db_source]->error);
 			if($industry_name_result->num_rows){
 				$industry_name = addslashes($industry_name_result->fetch_object()->name);
 			}
@@ -82,7 +82,7 @@
 		}
 		if(!empty($beverage)){
 			$beverage_name = "";
-			$beverage_name_result = $mysql[$db_source]->query("SELECT name FROM term_data WHERE tid = $beverage LIMIT 1") or die($mysql[$db_source]->error);
+			$beverage_name_result = $mysql[$db_source]->query("SELECT name FROM term_data WHERE tid = '{$beverage}' LIMIT 1") or die($mysql[$db_source]->error);
 			if($beverage_name_result->num_rows){
 				$beverage_name = addslashes($beverage_name_result->fetch_object()->name);
 			}
@@ -136,7 +136,7 @@
 			$linkedin = "https://" . strtolower($linkedin);
 		}
 
-		$logo_url = $mysql[$db_source]->query("SELECT fileurl FROM bf_files WHERE fid = $image LIMIT 1") or die($mysql[$db_source]->error);
+		$logo_url = $mysql[$db_source]->query("SELECT fileurl FROM bf_files WHERE uid = '{$row->user_id}' LIMIT 1") or die($mysql[$db_source]->error);
 		$logo = "";
 		if($logo_url->num_rows){
 			$logo = $logo_url->fetch_object()->fileurl;
