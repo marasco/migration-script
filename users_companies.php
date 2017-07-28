@@ -17,7 +17,7 @@
 		$columns_result = $mysql[$db_destination]->query("ALTER TABLE `companies` ADD `beverage_type_id` int(10) unsigned NULL AFTER `manufactured_type_id`,ADD INDEX (beverage_type_id)") or die($mysql[$db_destination]->error);
 	}
 
-	$companies = $mysql[$db_destination]->query("SELECT id, user_id FROM companies") or die($mysql[$db_destination]->error);
+	$companies = $mysql[$db_destination]->query("SELECT c.id, c.user_id FROM companies c INNER JOIN users u ON c.user_id = u.id AND u.brand = '{$brand}';") or die($mysql[$db_destination]->error);
 
 	// WHERE users.uid = 110718
 
@@ -25,15 +25,18 @@
 
 	while($row = $companies->fetch_object()) {
 
-		$fields = ['about','address','company_name','birthday','beverage','linkedin','facebook', 'zip', 'city', 'state', 'phone', 'country', 'employees', 'industry', 'image','twitter','website'];
+		$fields = ['about','address','company_name','birthday','beverage','linkedin','facebook', 'zip', 'city', 'state', 'phone', 'country', 'employees', 'industry', 'image','twitter','website', 'slug'];
 		$values = [];
 		$extra = $mysql[$db_source]->query("SELECT `key`, `value`  
 			FROM bf_users_options 
-			WHERE `key` IN('" . implode("','",$fields) ."') AND uid = {$row->user_id}") or die($mysql[$db_source]->error);
-
+			WHERE `key` IN('" . implode("','",$fields) ."') AND uid = {$row->user_id}");// or die($mysql[$db_source]->error);
+		$found = 0;
 		while($row2 = $extra->fetch_object()) {
+			$found = 1;
 			$extras[$row2->key] = $row2->value;
 		}
+		if (!$found)
+			continue;
 
 		foreach($fields as $field){
 			$values[$field] = "";
@@ -41,9 +44,25 @@
 				$values[$field] = $extras[$field];
 			}
 		}
-
+		$website = '';
+		$company_name = '';
+		$linkedin = '';
+		$facebook = '';
+		$twitter = '';
+		$phone = '';
+		$image = '';
+		$address = '';
+		$city = '';
+		$state = '';
+		$zip = '';
+		$industry = '';
+		$image = '';
+		$beverage_id=0;
+		$industry_id=0;
 		extract($values);
-
+		//if (!empty($birthday) && $birthday!='/')
+		//print("\r\n$birthday");
+		//continue;
 
 		if(!empty($industry)){
 			$industry_name = "";
@@ -61,7 +80,6 @@
 				}
 			}
 		}
-
 		if(!empty($beverage)){
 			$beverage_name = "";
 			$beverage_name_result = $mysql[$db_source]->query("SELECT name FROM term_data WHERE tid = $beverage LIMIT 1") or die($mysql[$db_source]->error);
@@ -80,7 +98,20 @@
 		}
 
 		$about = addslashes($about);
+		$slug = $company_name;
 		$company_name = addslashes($company_name);
+
+		/*
+		// Thanks @Łukasz Rysiak!
+		$slug = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\ \(\).])", '', $slug);
+		// Remove any runs of periods (thanks falstro!)
+		$slug = mb_ereg_replace("([\.]{2,})", '', $slug);
+		*/
+
+		$slug = preg_replace("/[^A-Za-z0-9]/", '', trim(strtolower($slug)));
+
+		$slug = addslashes($slug);
+
 		$address = addslashes($address);
 		$city = addslashes($city);
 		$country = addslashes($country);
@@ -92,17 +123,17 @@
 
 		if(strlen($facebook)){
 			$facebook = str_replace(["http://","https://"],"",$facebook);
-			$facebook = "https://" . $facebook;
+			$facebook = "https://" . strtolower($facebook);
 		}
 
 		if(strlen($twitter)){
 			$twitter = str_replace(["http://","https://"],"",$twitter);
-			$twitter = "https://" . $twitter;
+			$twitter = "https://" . strtolower($twitter);
 		}
 
 		if(strlen($linkedin)){
 			$linkedin = str_replace(["http://","https://"],"",$linkedin);
-			$linkedin = "https://" . $linkedin;
+			$linkedin = "https://" . strtolower($linkedin);
 		}
 
 		$logo_url = $mysql[$db_source]->query("SELECT fileurl FROM bf_files WHERE fid = $image LIMIT 1") or die($mysql[$db_source]->error);
@@ -114,29 +145,70 @@
 		if(!strlen($logo) AND !empty($image) AND strlen($image)){
 			$logo = $image;
 		}
+		if (strlen($website)>180){
+			$website = '';
+		}
+		$website = strtolower($website);
+		if (strlen($facebook)>180){
+			$facebook = '';
+		}
+		if (strlen($twitter)>180){
+			$twitter = '';
+		}
+		if (strlen($linkedin)>180){
+			$linkedin = '';
+		}
+		$twitterWidget = '';
+		if (!empty($twitter)){
+			if (strpos($twitter, '/')!==FALSE){
+				$twitterWidget = " twitter_widget = '".substr($twitter, strrpos($twitter, '/') + 1)."', ";
+			}else{
+				$twitterWidget = " twitter_widget = '".$twitter."', ";
+			}
 
+		}
+		if (!empty($city) && !empty($state)){
+			$location = $city.', '.$state;
+		}elseif (!empty($state)){
+			$location = $state;
+		}elseif (!empty($city)){
+			$location = $city;
+			if (!empty($address)){
+				$location = $address.', '.$city;
+			}
+		}elseif (!empty($address)) {
+			$location = $address;
+		}else{
+			$location='';
+		}
+//		$location = {$address} {$city} {$zip} {$state} {$country};
+		$editableManuf = (!empty($industry_id))?' editable_manufacture_type = 1,':'';
 		$inserted_result = $mysql[$db_destination]->query("UPDATE companies SET 
 			name = '{$company_name}',
+			slug = '{$slug}',
+			$editableManuf 
+			$twitterWidget 
+			editable_name = 1,
 			beverage_type_id = '{$beverage_id}',
 			manufactured_type_id = '{$industry_id}',
-			location = '{$address} {$city} {$zip} {$state} {$country}',
+			location = '{$location}',
 			web = '{$website}',
 			phone = '{$phone}',
 			logo = '{$logo}',
 			facebook_url = '{$facebook}',
 			twitter_url = '{$twitter}',
 			linkedin_url = '{$linkedin}',
-			birthdate = '{$birthday}',
-			number_of_employees = '{$employees}',
+			number_of_employees = ".intval($employees).",
 			description = '{$about}'
 			WHERE user_id = {$row->user_id}
-			") OR die($mysql[$db_destination]->error);
+			"); // OR die($mysql[$db_destination]->error);
 		
+		//	birthdate = '{$birthday}',
 		if($inserted_result){
 			$inserted++;
 		}
-
-		show_progress($inserted, $total);
+		print("\r\nuser_id:".$row->user_id." / ".$company_name);
+		//show_progress($inserted, $total);
 	}
 
 	$companies->free();

@@ -1,15 +1,10 @@
-#!/bin/sh
-cd .;
+#!/bin/bash
+# Tested using bash version 4.1.5
+for ((i=1;i<=2000;i++)); 
+do 
+   # your-unix-command-here
+   let p=($i-1)*100
+   echo "php users.php - $p,100";
+   php users.php -l $p,100
+done
 
-echo "Running process";
-limit=0
-# phpcommand=`whereis php`
-phpcommand='/usr/bin/php'
-offset=0
-limitarg=""
-
-$phpcommand ./users.php $limitarg
-$phpcommand ./users_files.php
-$phpcommand ./users_credits.php
-
-echo "Finished";

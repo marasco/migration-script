@@ -262,7 +262,7 @@
 		created_at = '{$created}',
 		updated_at = '{$changed}',
 		post_anonymously = {$anonymous},
-		notifications_preferences_id = 6
+		notifications_preferences_id = 2
 		";
 		try { 
 			$insert_row_id = $mysql[$db_destination]->query($sql) or $errors[] = "\r\n".$mysql[$db_destination]->error;

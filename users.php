@@ -183,7 +183,7 @@
 					$logo = $path_parts['basename'];
 				}
 
-				$sql = "INSERT INTO companies SET name = '{$work}', user_id = '{$row->uid}', logo = '{$logo}', linkedin_url = '{$linkedin}'";
+				$sql = "INSERT INTO companies SET name = '{$work}', user_id = '{$row->uid}', logo = '{$logo}'";
 				$company_id = $mysql[$db_destination]->query($sql) OR die($mysql[$db_destination]->error);
 			//}
 		}
