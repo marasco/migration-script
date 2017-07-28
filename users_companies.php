@@ -29,12 +29,15 @@
 		$values = [];
 		$extra = $mysql[$db_source]->query("SELECT `key`, `value`  
 			FROM bf_users_options 
-			WHERE `key` IN('" . implode("','",$fields) ."') AND uid = {$row->user_id}") or die($mysql[$db_source]->error);
-
+			WHERE `key` IN('" . implode("','",$fields) ."') AND uid = {$row->user_id}");// or die($mysql[$db_source]->error);
+		$found = 0;
 		while($row2 = $extra->fetch_object()) {
+			$found = 1;
 			$extras[$row2->key] = $row2->value;
 		}
-
+		if (!$found)
+			continue;
+		
 		foreach($fields as $field){
 			$values[$field] = "";
 			if(!empty($extras[$field]) AND trim($extras[$field]) != ""){	
