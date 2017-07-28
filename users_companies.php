@@ -195,7 +195,7 @@
 			number_of_employees = ".intval($employees).",
 			description = '{$about}'
 			WHERE user_id = {$row->user_id}
-			") OR die($mysql[$db_destination]->error);
+			"); // OR die($mysql[$db_destination]->error);
 		
 		//	birthdate = '{$birthday}',
 		if($inserted_result){
