@@ -1,9 +1,11 @@
 # Migration scripts
 
 (Optional)
-$ php replace-user-ids.php; (CHANGE IDs if needed)
 
-$ php users.php;
+1) analyze and user replace-user-ids.php; (CHANGE IDs if needed)
+
+2) 
+$ php users.php; #can user runjobs.sh to stepping
 $ php users_credits.php;
 $ php users_companies.php;
 $ php users_files.php;
