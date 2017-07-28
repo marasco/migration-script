@@ -123,18 +123,17 @@
 
 		if(strlen($facebook)){
 			$facebook = str_replace(["http://","https://"],"",$facebook);
-			$facebook = "https://" . $facebook;
+			$facebook = "https://" . strtolower($facebook);
 		}
-
 
 		if(strlen($twitter)){
 			$twitter = str_replace(["http://","https://"],"",$twitter);
-			$twitter = "https://" . $twitter;
+			$twitter = "https://" . strtolower($twitter);
 		}
 
 		if(strlen($linkedin)){
 			$linkedin = str_replace(["http://","https://"],"",$linkedin);
-			$linkedin = "https://" . $linkedin;
+			$linkedin = "https://" . strtolower($linkedin);
 		}
 
 		if(strlen($image)){
@@ -146,6 +145,7 @@
 		if (strlen($website)>180){
 			$website = '';
 		}
+		$website = strtolower($website);
 		if (strlen($facebook)>180){
 			$facebook = '';
 		}
