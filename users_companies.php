@@ -17,7 +17,7 @@
 		$columns_result = $mysql[$db_destination]->query("ALTER TABLE `companies` ADD `beverage_type_id` int(10) unsigned NULL AFTER `manufactured_type_id`,ADD INDEX (beverage_type_id)") or die($mysql[$db_destination]->error);
 	}
 
-	$companies = $mysql[$db_destination]->query("SELECT id, user_id FROM companies") or die($mysql[$db_destination]->error);
+	$companies = $mysql[$db_destination]->query("SELECT c.id, c.user_id FROM companies c INNER JOIN users u ON c.user_id = u.id AND u.brand = '{$brand}';") or die($mysql[$db_destination]->error);
 
 	// WHERE users.uid = 110718
 
@@ -37,7 +37,7 @@
 		}
 		if (!$found)
 			continue;
-		
+
 		foreach($fields as $field){
 			$values[$field] = "";
 			if(!empty($extras[$field]) AND trim($extras[$field]) != ""){	
