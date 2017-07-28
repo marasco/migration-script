@@ -161,7 +161,21 @@
 			}
 
 		}
-		
+		if (!empty($city) && !empty($state)){
+			$location = $city.', '.$state;
+		}elseif (!empty($state)){
+			$location = $state;
+		}elseif (!empty($city)){
+			$location = $city;
+			if (!empty($address)){
+				$location = $address.', '.$city;
+			}
+		}elseif (!empty($address)) {
+			$location = $address;
+		}else{
+			$location='';
+		}
+//		$location = {$address} {$city} {$zip} {$state} {$country};
 		$editableManuf = (!empty($industry_id))?' editable_manufacture_type = 1,':'';
 		$inserted_result = $mysql[$db_destination]->query("UPDATE companies SET 
 			name = '{$company_name}',
@@ -171,7 +185,7 @@
 			editable_name = 1,
 			beverage_type_id = '{$beverage_id}',
 			manufactured_type_id = '{$industry_id}',
-			location = '{$address} {$city} {$zip} {$state} {$country}',
+			location = '{$location}',
 			web = '{$website}',
 			phone = '{$phone}',
 			logo = '{$image}',
