@@ -105,11 +105,14 @@
 			$linkedin = "https://" . $linkedin;
 		}
 
-		if(strlen($image)){
-			$logo_url = $mysql[$db_source]->query("SELECT fileurl FROM bf_files WHERE fid = $image LIMIT 1") or die($mysql[$db_source]->error);
-			if($logo_url->num_rows){
-				$image = $logo_url->fetch_object()->fileurl;
-			}
+		$logo_url = $mysql[$db_source]->query("SELECT fileurl FROM bf_files WHERE fid = $image LIMIT 1") or die($mysql[$db_source]->error);
+		$logo = "";
+		if($logo_url->num_rows){
+			$logo = $logo_url->fetch_object()->fileurl;
+		}
+
+		if(!strlen($logo) AND !empty($image) AND strlen($image)){
+			$logo = $image;
 		}
 
 		$inserted_result = $mysql[$db_destination]->query("UPDATE companies SET 
@@ -119,7 +122,7 @@
 			location = '{$address} {$city} {$zip} {$state} {$country}',
 			web = '{$website}',
 			phone = '{$phone}',
-			logo = '{$image}',
+			logo = '{$logo}',
 			facebook_url = '{$facebook}',
 			twitter_url = '{$twitter}',
 			linkedin_url = '{$linkedin}',
